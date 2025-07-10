@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SolidityExecutor } from '../src/solidityExecutor.ts'
+import { BlockManager } from '../src/blockManager.ts'
 
 describe('SolidityExecutor', () => {
   let executor: SolidityExecutor
+  let blockManager: BlockManager
 
-  beforeEach(() => {
-    executor = new SolidityExecutor()
+  beforeEach(async () => {
+    blockManager = new BlockManager()
+    await blockManager.initialize()
+    executor = new SolidityExecutor(blockManager)
   })
 
   describe('executeSolidity', () => {
@@ -24,14 +28,15 @@ describe('SolidityExecutor', () => {
       const result = await executor.executeSolidity(sourceCode)
 
       expect(result.success).toBe(true)
-      expect(result.output).toContain('Function main called with args: []')
+      expect(result.output).toContain('Contract "Simple" deployed at')
+      expect(result.output).toContain('Function main executed successfully')
     })
 
     it('should handle empty code', async () => {
       const result = await executor.executeSolidity('')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('No Solidity code provided')
+      expect(result.error).toContain('No contracts found')
     })
 
     it('should handle malformed code gracefully', async () => {

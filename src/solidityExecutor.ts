@@ -1,23 +1,12 @@
-import { Common, Hardfork, Mainnet } from '@ethereumjs/common'
-import { EVM } from '@ethereumjs/evm'
-import { MerkleStateManager } from '@ethereumjs/statemanager'
-import { createLegacyTx } from '@ethereumjs/tx'
-import {
-  Account,
-  Address,
-  bytesToHex,
-  createAddressFromPrivateKey,
-  createContractAddress,
-  hexToBytes,
-} from '@ethereumjs/util'
-import { createVM, runTx } from '@ethereumjs/vm'
+import { bytesToHex } from '@ethereumjs/util'
 import { ethers } from 'ethers'
+import { BlockManager, LogEntry } from './blockManager'
 
 export interface ExecutionResult {
   success: boolean
   output: string
   gasUsed: bigint
-  logs: string[]
+  logs: LogEntry[] // Changed from string[] to LogEntry[] for consistency
   error?: string
   transactionId?: string
   contractAddress?: string
@@ -146,44 +135,21 @@ async function getSolc(): Promise<any> {
 }
 
 export class SolidityExecutor {
-  private vm: any
-  private common: Common
-  private stateManager: MerkleStateManager
-  private defaultAddress: Address
-  private defaultPrivateKey: Uint8Array
-  private blockManager?: any
+  private blockManager: BlockManager // Now required, not optional
   public lastCompiledAbi: any[] | null = null
   public lastCompiledName: string | null = null
   private contractAbiMap: Map<string, { name: string; abi: any[] }> = new Map()
 
-  constructor(blockManager?: any) {
-    // Use Berlin hardfork instead of London to avoid base fee issues
-    this.common = new Common({ chain: Mainnet, hardfork: Hardfork.Berlin })
-    this.stateManager = new MerkleStateManager()
-    this.vm = null // Will be initialized in init()
-    this.defaultPrivateKey = hexToBytes(
-      '0x1234567890123456789012345678901234567890123456789012345678901234',
-    )
-    this.defaultAddress = createAddressFromPrivateKey(this.defaultPrivateKey)
+  constructor(blockManager: BlockManager) {
+    // BlockManager is now required for consistent blockchain behavior
+    if (!blockManager) {
+      throw new Error('BlockManager is required for SolidityExecutor')
+    }
+    
     this.blockManager = blockManager
   }
 
-  private async init() {
-    if (!this.vm) {
-      this.vm = await createVM({ common: this.common, stateManager: this.stateManager })
-      // Ensure the default account exists with some balance
-      const account = await this.stateManager.getAccount(this.defaultAddress)
-      if (!account || account.balance === BigInt(0)) {
-        const newAccount = new Account(BigInt(0), BigInt(1000000000000000000n)) // 1 ETH
-        await this.stateManager.putAccount(this.defaultAddress, newAccount)
-      }
-    }
-  }
 
-  private async getNonce(): Promise<bigint> {
-    const account = await this.stateManager.getAccount(this.defaultAddress)
-    return account?.nonce ?? BigInt(0)
-  }
 
   /**
    * Compile Solidity source code
@@ -257,122 +223,9 @@ export class SolidityExecutor {
     }
   }
 
-  /**
-   * Deploy a contract and return its address
-   */
-  async deployContract(bytecode: string, constructorArgs: any[] = []): Promise<Address> {
-    await this.init()
 
-    // Normalize bytecode
-    const normalizedBytecode = bytecode.startsWith('0x') ? bytecode : `0x${bytecode}`
 
-    // Validate hex string
-    if (!/^0x[0-9a-fA-F]*$/.test(normalizedBytecode)) {
-      throw new Error(`Invalid bytecode: ${normalizedBytecode}`)
-    }
 
-    const nonce = await this.getNonce()
-    const gasPrice = BigInt(20000000000) // 20 gwei
-
-    // Encode constructor arguments if provided
-    let data = normalizedBytecode
-    if (constructorArgs.length > 0) {
-      const iface = new ethers.Interface(['constructor()'])
-      data = normalizedBytecode + iface.encodeDeploy(constructorArgs).slice(2)
-    }
-
-    const txData = {
-      data: hexToBytes(data as `0x${string}`),
-      gasLimit: BigInt(5000000),
-      gasPrice,
-      value: BigInt(0),
-      nonce,
-    }
-
-    const tx = createLegacyTx(txData, { common: this.common }).sign(this.defaultPrivateKey)
-
-    const result = await runTx(this.vm, { tx })
-
-    if (result.execResult.exceptionError) {
-      throw new Error(`Deployment failed: ${result.execResult.exceptionError.error}`)
-    }
-
-    return result.createdAddress!
-  }
-
-  /**
-   * Call a contract function
-   */
-  async callContract(
-    contractAddress: Address,
-    abi: any[],
-    functionName: string,
-    args: any[] = [],
-  ): Promise<ExecutionResult> {
-    await this.init()
-
-    const iface = new ethers.Interface(abi)
-    const functionFragment = iface.getFunction(functionName)
-
-    if (!functionFragment) {
-      throw new Error(`Function ${functionName} not found in ABI`)
-    }
-
-    const data = iface.encodeFunctionData(functionFragment, args)
-    const nonce = await this.getNonce()
-    const gasPrice = BigInt(20000000000) // 20 gwei
-
-    const txData = {
-      to: contractAddress,
-      data: hexToBytes(data as `0x${string}`),
-      gasLimit: BigInt(5000000),
-      gasPrice,
-      value: BigInt(0),
-      nonce,
-    }
-
-    const tx = createLegacyTx(txData, { common: this.common }).sign(this.defaultPrivateKey)
-
-    const result = await runTx(this.vm, { tx })
-
-    if (result.execResult.exceptionError) {
-      return {
-        success: false,
-        output: '',
-        gasUsed: result.totalGasSpent,
-        logs: [],
-        error: result.execResult.exceptionError.error,
-      }
-    }
-
-    // Decode the return value
-    let output = ''
-    if (result.execResult.returnValue.length > 0) {
-      try {
-        const returnData = bytesToHex(result.execResult.returnValue)
-        const decoded = iface.decodeFunctionResult(functionFragment, returnData)
-        output = JSON.stringify(decoded, null, 2)
-      } catch (error) {
-        output = bytesToHex(result.execResult.returnValue)
-      }
-    }
-
-    // Format logs
-    const logs: string[] = []
-    if (result.execResult.logs) {
-      for (const log of result.execResult.logs) {
-        const [address, topics, logData] = log
-        logs.push(`Log: ${bytesToHex(address)} - ${bytesToHex(logData)}`)
-      }
-    }
-
-    return {
-      success: true,
-      output,
-      gasUsed: result.totalGasSpent,
-      logs,
-    }
-  }
 
   /**
    * Deploy Solidity contract without executing any functions
@@ -392,76 +245,52 @@ export class SolidityExecutor {
         }
       }
 
-      // If block manager is available, use it for block-based deployment
-      if (this.blockManager) {
-        const contract = contracts[0]
+      const contract = contracts[0]
 
-        // Store the compiled contract information for later retrieval
-        this.storeCompiledContractInfo(contract.contractName, contract.abi)
+      // Store the compiled contract information for later retrieval
+      this.storeCompiledContractInfo(contract.contractName, contract.abi)
 
-        // Ensure bytecode is a string and has proper format
-        let bytecode = contract.bytecode
-        if (typeof bytecode !== 'string') {
-          bytecode = String(bytecode)
-        }
+      // Ensure bytecode is a string and has proper format
+      let bytecode = contract.bytecode
+      if (typeof bytecode !== 'string') {
+        bytecode = String(bytecode)
+      }
 
-        // Remove any whitespace and ensure 0x prefix
-        bytecode = bytecode.trim()
-        if (!bytecode.startsWith('0x')) {
-          bytecode = `0x${bytecode}`
-        }
+      // Remove any whitespace and ensure 0x prefix
+      bytecode = bytecode.trim()
+      if (!bytecode.startsWith('0x')) {
+        bytecode = `0x${bytecode}`
+      }
 
-        // Deploy contract to block (deployment only, no function execution)
-        const deploymentTx = await this.blockManager.addTransaction('deployment', bytecode)
+      // Deploy contract to block (deployment only, no function execution)
+      const deploymentTx = await this.blockManager.addTransaction('deployment', bytecode)
 
-        if (deploymentTx.status === 'failed') {
-          return {
-            success: false,
-            output: '',
-            gasUsed: BigInt(0),
-            logs: [],
-            error: deploymentTx.error || 'Contract deployment failed',
-          }
-        }
-
-        // Store the contract info by its deployed address
-        if (deploymentTx.contractAddress) {
-          this.storeContractByAddress(
-            deploymentTx.contractAddress,
-            contract.contractName,
-            contract.abi,
-          )
-        }
-
+      if (deploymentTx.status === 'failed') {
         return {
-          success: true,
-          output: `Contract "${contract.contractName}" deployed successfully at ${deploymentTx.contractAddress}\nReady for function execution via Dashboard.`,
-          gasUsed: deploymentTx.gasUsed,
-          logs: deploymentTx.logs,
-          transactionId: deploymentTx.id,
-          contractAddress: deploymentTx.contractAddress,
-        }
-      } else {
-        // Fallback to original deployment method
-        const contract = contracts[0]
-        const contractAddress = await this.deployContract(contract.bytecode)
-
-        // Store the contract info by its deployed address
-        if (contractAddress) {
-          this.storeContractByAddress(
-            contractAddress.toString(),
-            contract.contractName,
-            contract.abi,
-          )
-        }
-
-        return {
-          success: true,
-          output: `Contract "${contract.contractName}" deployed at: ${contractAddress.toString()}`,
+          success: false,
+          output: '',
           gasUsed: BigInt(0),
           logs: [],
-          contractAddress: contractAddress.toString(),
+          error: deploymentTx.error || 'Contract deployment failed',
         }
+      }
+
+      // Store the contract info by its deployed address
+      if (deploymentTx.contractAddress) {
+        this.storeContractByAddress(
+          deploymentTx.contractAddress,
+          contract.contractName,
+          contract.abi,
+        )
+      }
+
+      return {
+        success: true,
+        output: `Contract "${contract.contractName}" deployed successfully at ${deploymentTx.contractAddress}\nReady for function execution via Dashboard.`,
+        gasUsed: deploymentTx.gasUsed,
+        logs: deploymentTx.logs,
+        transactionId: deploymentTx.id,
+        contractAddress: deploymentTx.contractAddress,
       }
     } catch (error) {
       return {
@@ -492,92 +321,80 @@ export class SolidityExecutor {
         }
       }
 
-      // If block manager is available, use it for block-based execution
-      if (this.blockManager) {
-        const contract = contracts[0]
+      const contract = contracts[0]
 
-        // Store the compiled contract information for later retrieval
-        this.storeCompiledContractInfo(contract.contractName, contract.abi)
+      // Store the compiled contract information for later retrieval
+      this.storeCompiledContractInfo(contract.contractName, contract.abi)
 
-        // Ensure bytecode is a string and has proper format
-        let bytecode = contract.bytecode
-        if (typeof bytecode !== 'string') {
-          bytecode = String(bytecode)
+      // Ensure bytecode is a string and has proper format
+      let bytecode = contract.bytecode
+      if (typeof bytecode !== 'string') {
+        bytecode = String(bytecode)
+      }
+
+      // Remove any whitespace and ensure 0x prefix
+      bytecode = bytecode.trim()
+      if (!bytecode.startsWith('0x')) {
+        bytecode = `0x${bytecode}`
+      }
+
+      // Deploy contract to block
+      const deploymentTx = await this.blockManager.addTransaction('deployment', bytecode)
+
+      if (deploymentTx.status === 'failed') {
+        return {
+          success: false,
+          output: '',
+          gasUsed: BigInt(0),
+          logs: [],
+          error: deploymentTx.error || 'Contract deployment failed',
         }
+      }
 
-        // Remove any whitespace and ensure 0x prefix
-        bytecode = bytecode.trim()
-        if (!bytecode.startsWith('0x')) {
-          bytecode = `0x${bytecode}`
-        }
-
-        // Deploy contract to block
-        const deploymentTx = await this.blockManager.addTransaction('deployment', bytecode)
-
-        if (deploymentTx.status === 'failed') {
-          return {
-            success: false,
-            output: '',
-            gasUsed: BigInt(0),
-            logs: [],
-            error: deploymentTx.error || 'Contract deployment failed',
-          }
-        }
-
-        // Store the contract info by its deployed address
-        if (deploymentTx.contractAddress) {
-          this.storeContractByAddress(
-            deploymentTx.contractAddress,
-            contract.contractName,
-            contract.abi,
-          )
-        }
-
-        // Look for a main function to execute
-        const mainFunction = contract.abi.find(
-          (item: any) =>
-            item.type === 'function' &&
-            (item.name === 'main' || item.name === 'test' || item.name === 'run'),
+      // Store the contract info by its deployed address
+      if (deploymentTx.contractAddress) {
+        this.storeContractByAddress(
+          deploymentTx.contractAddress,
+          contract.contractName,
+          contract.abi,
         )
+      }
 
-        if (mainFunction && deploymentTx.contractAddress) {
-          try {
-            // Execute the main function on the block
-            const functionTx = await this.blockManager.executeContractFunction(
-              deploymentTx.contractAddress,
-              contract.abi,
-              mainFunction.name,
-            )
+      // Look for a main function to execute
+      const mainFunction = contract.abi.find(
+        (item: any) =>
+          item.type === 'function' &&
+          (item.name === 'main' || item.name === 'test' || item.name === 'run'),
+      )
 
-            let output = `Contract "${contract.contractName}" deployed at ${deploymentTx.contractAddress}\nFunction ${mainFunction.name} executed successfully`
+      if (mainFunction && deploymentTx.contractAddress) {
+        try {
+          // Execute the main function on the block
+          const functionTx = await this.blockManager.executeContractFunction(
+            deploymentTx.contractAddress,
+            contract.abi,
+            mainFunction.name,
+          )
 
-            // Include the actual return value if available
-            if (functionTx.returnValue) {
-              output += `\nReturn value: ${functionTx.returnValue}`
-            }
+          let output = `Contract "${contract.contractName}" deployed at ${deploymentTx.contractAddress}\nFunction ${mainFunction.name} executed successfully`
 
-            return {
-              success: functionTx.status === 'executed',
-              output: output,
-              gasUsed: deploymentTx.gasUsed + functionTx.gasUsed,
-              logs: [...deploymentTx.logs, ...functionTx.logs],
-              transactionId: functionTx.id,
-              contractAddress: deploymentTx.contractAddress,
-            }
-          } catch (functionError) {
-            return {
-              success: true,
-              output: `Contract "${contract.contractName}" deployed successfully at ${deploymentTx.contractAddress}\nFunction execution failed: ${functionError instanceof Error ? functionError.message : String(functionError)}`,
-              gasUsed: deploymentTx.gasUsed,
-              logs: deploymentTx.logs,
-              transactionId: deploymentTx.id,
-              contractAddress: deploymentTx.contractAddress,
-            }
+          // Include the actual return value if available
+          if (functionTx.returnValue) {
+            output += `\nReturn value: ${functionTx.returnValue}`
           }
-        } else {
+
+          return {
+            success: functionTx.status === 'executed',
+            output: output,
+            gasUsed: deploymentTx.gasUsed + functionTx.gasUsed,
+            logs: [...deploymentTx.logs, ...functionTx.logs],
+            transactionId: functionTx.id,
+            contractAddress: deploymentTx.contractAddress,
+          }
+        } catch (functionError) {
           return {
             success: true,
-            output: `Contract "${contract.contractName}" deployed successfully at ${deploymentTx.contractAddress}\nNo main function found to execute.`,
+            output: `Contract "${contract.contractName}" deployed successfully at ${deploymentTx.contractAddress}\nFunction execution failed: ${functionError instanceof Error ? functionError.message : String(functionError)}`,
             gasUsed: deploymentTx.gasUsed,
             logs: deploymentTx.logs,
             transactionId: deploymentTx.id,
@@ -585,32 +402,13 @@ export class SolidityExecutor {
           }
         }
       } else {
-        // Fallback to original execution method
-        const contract = contracts[0]
-        const contractAddress = await this.deployContract(contract.bytecode)
-
-        // Store the contract info by its deployed address
-        if (contractAddress) {
-          this.storeContractByAddress(
-            contractAddress.toString(),
-            contract.contractName,
-            contract.abi,
-          )
-        }
-
-        // Execute the main function if it exists
-        if (contract.abi.find((func: any) => func.name === 'main')) {
-          console.log('Executing main function...')
-          const mainTx = await this.callContract(contractAddress, contract.abi, 'main')
-          console.log('Main function executed:', mainTx)
-        }
-
         return {
           success: true,
-          output: `Contract deployed at: ${contractAddress.toString()}`,
-          gasUsed: BigInt(0),
-          logs: [],
-          contractAddress: contractAddress.toString(),
+          output: `Contract "${contract.contractName}" deployed successfully at ${deploymentTx.contractAddress}\nNo main function found to execute.`,
+          gasUsed: deploymentTx.gasUsed,
+          logs: deploymentTx.logs,
+          transactionId: deploymentTx.id,
+          contractAddress: deploymentTx.contractAddress,
         }
       }
     } catch (error) {
@@ -625,11 +423,13 @@ export class SolidityExecutor {
   }
 
   /**
-   * Reset the VM state
+   * Reset the executor state
    */
   async reset(): Promise<void> {
-    this.vm = null
-    this.stateManager = new MerkleStateManager()
+    // Reset contract storage
+    this.contractAbiMap.clear()
+    this.lastCompiledAbi = null
+    this.lastCompiledName = null
   }
 
   /**

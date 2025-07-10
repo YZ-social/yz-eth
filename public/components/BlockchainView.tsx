@@ -692,152 +692,10 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         )}
       </Paper>
 
-      {/* Deployed Contracts */}
-      <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              📋 Deployed Contracts ({deployedContracts.length})
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
-            {deployedContracts.length > 0 ? (
-              <Select
-                value={selectedContract?.address || ''}
-                onChange={(event) => {
-                  const selectedAddress = event.target.value
-                  const contract = deployedContracts.find((c) => c.address === selectedAddress)
-                  if (contract) {
-                    console.log('Contract selected from dropdown:', contract)
-                    handleContractClick(contract)
-                  }
-                }}
-                displayEmpty
-                size="small"
-                sx={{ minWidth: 200, whiteSpace: 'nowrap' }}
-              >
-                <MenuItem value="" disabled>
-                  Select a contract to execute...
-                </MenuItem>
-                {deployedContracts.map((contract) => (
-                  <MenuItem key={contract.address} value={contract.address}>
-                    {contract.name} ({contract.functions.length} functions)
-                  </MenuItem>
-                ))}
-              </Select>
-            ) : (
-              <Button
-                size="small"
-                variant="outlined"
-                disabled
-                sx={{ whiteSpace: 'nowrap', opacity: 0.5 }}
-              >
-                No Contracts Available
-              </Button>
-            )}
-            <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>
-              Dialog: {openDialog ? 'OPEN' : 'CLOSED'}
-            </Typography>
-          </Box>
-        </Box>
-        {deployedContracts.length === 0 ? (
-          <Typography variant="body2" color="textSecondary">
-            No contracts deployed yet. Deploy a contract from the Code Editor to see it here.
-          </Typography>
-        ) : (
-          <Box>
-            {deployedContracts.map((contract, index) => (
-              <Box
-                key={contract.address}
-                sx={{
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 1,
-                  mb: 1,
-                  borderLeft: '4px solid #B05823',
-                  p: 2,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 2,
-                  width: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <Box sx={{ flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
-                  <Box
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1 }}
-                  >
-                    <CodeIcon color="primary" />
-                    <Typography variant="body2" component="span" sx={{ fontWeight: 'bold' }}>
-                      {contract.name}
-                    </Typography>
-                    <Chip
-                      label={`${contract.functions.length} functions`}
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                    />
-                  </Box>
-                  <Box component="div">
-                    <Typography
-                      variant="body2"
-                      component="div"
-                      sx={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Address: {contract.address}
-                    </Typography>
-                    <Typography variant="body2" component="div">
-                      Deployed: {new Date(contract.deployedAt).toLocaleString()}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      component="div"
-                      sx={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Functions: {contract.functions.map((f) => f.name).join(', ')}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ flexShrink: 0 }}>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    color="primary"
-                    startIcon={<PlayArrowIcon />}
-                    onClick={() => {
-                      console.log('Execute button clicked for contract:', contract)
-                      handleContractClick(contract)
-                    }}
-                    sx={{
-                      backgroundColor: '#B05823',
-                      '&:hover': {
-                        backgroundColor: '#8B4513',
-                      },
-                      fontWeight: 'bold',
-                      minWidth: '80px',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    Execute
-                  </Button>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        )}
-      </Paper>
-
       {/* Transactions */}
-      <Paper elevation={3} sx={{ p: 2, mb: 2, maxHeight: '400px', overflow: 'auto' }}>
+      <Paper elevation={3} sx={{ p: 2, mb: 2, maxHeight: '600px', overflow: 'auto' }}>
         <Typography variant="h6" gutterBottom>
-          📋 Transactions ({transactions.length})
+          📋 Transactions & Contracts ({transactions.length})
         </Typography>
         {transactions.length === 0 ? (
           <Typography variant="body2" color="textSecondary">
@@ -845,69 +703,222 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
           </Typography>
         ) : (
           <List>
-            {transactions.map((tx, index) => (
-              <ListItem
-                key={tx.id}
-                sx={{
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 1,
-                  mb: 1,
-                  borderLeft: `4px solid ${tx.status === 'executed' ? '#4caf50' : tx.status === 'failed' ? '#f44336' : '#ff9800'}`,
-                }}
-              >
-                <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <span>{renderTransactionType(tx.type)}</span>
-                      <span>{renderTransactionStatus(tx.status)}</span>
-                      <Typography variant="body2" component="span">
-                        {tx.id} - {tx.type.replace('_', ' ')}
-                      </Typography>
+            {transactions.map((tx, index) => {
+              // Find if this transaction deployed a contract we know about
+              const deployedContract = deployedContracts.find(c => c.deploymentTxId === tx.id)
+              
+              return (
+                <ListItem
+                  key={tx.id}
+                  sx={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 1,
+                    mb: 1,
+                    borderLeft: `4px solid ${tx.status === 'executed' ? '#4caf50' : tx.status === 'failed' ? '#f44336' : '#ff9800'}`,
+                    backgroundColor: tx.type === 'deployment' && deployedContract ? '#f8f9fa' : 'transparent',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    gap: { xs: 1, sm: 0 },
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <span>{renderTransactionType(tx.type)}</span>
+                        <span>{renderTransactionStatus(tx.status)}</span>
+                        <Typography variant="body2" component="span" sx={{ fontWeight: 'bold' }}>
+                          {tx.id} - {tx.type.replace('_', ' ')}
+                        </Typography>
+                        {deployedContract && (
+                          <Chip
+                            label={deployedContract.name}
+                            size="small"
+                            color="primary"
+                            icon={<CodeIcon />}
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <Box component="div" sx={{ width: '100%', maxWidth: '100%' }}>
+                        <Typography variant="body2" component="div">
+                          Gas Used: {tx.gasUsed.toString()}
+                        </Typography>
+                        {tx.contractAddress && (
+                          <Typography 
+                            variant="body2" 
+                            component="div"
+                            sx={{ 
+                              wordBreak: 'break-all',
+                              fontFamily: 'monospace',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            Contract: {tx.contractAddress}
+                          </Typography>
+                        )}
+                        {deployedContract && (
+                          <Box sx={{ mt: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                            <Typography variant="body2" component="div" sx={{ fontWeight: 'bold' }}>
+                              📋 Contract Details:
+                            </Typography>
+                            <Typography variant="body2" component="div">
+                              Name: {deployedContract.name}
+                            </Typography>
+                            <Typography 
+                              variant="body2" 
+                              component="div"
+                              sx={{ 
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              Functions: {deployedContract.functions.map((f) => f.name).join(', ')}
+                            </Typography>
+                            <Typography variant="body2" component="div">
+                              Deployed: {new Date(deployedContract.deployedAt).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        )}
+                        {tx.functionName && (
+                          <Typography variant="body2" component="div">
+                            Function: {tx.functionName}
+                          </Typography>
+                        )}
+                        {tx.functionArgs && tx.functionArgs.length > 0 && (
+                          <Typography 
+                            variant="body2" 
+                            component="div"
+                            sx={{ 
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              fontFamily: 'monospace',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            Args: {JSON.stringify(tx.functionArgs)}
+                          </Typography>
+                        )}
+                        {tx.returnValue && (
+                          <Box sx={{ mt: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                            <Typography variant="body2" component="div" sx={{ fontWeight: 'bold' }}>
+                              📤 Return Value:
+                            </Typography>
+                            <Typography 
+                              variant="body2" 
+                              component="div"
+                              sx={{ 
+                                wordBreak: 'break-word',
+                                fontFamily: 'monospace',
+                                fontSize: '0.9rem',
+                                color: '#2e7d32',
+                                maxHeight: '100px',
+                                overflow: 'auto'
+                              }}
+                            >
+                              {(() => {
+                                try {
+                                  // Try to parse as JSON first
+                                  const parsed = JSON.parse(tx.returnValue)
+                                  if (typeof parsed === 'string') {
+                                    return parsed
+                                  } else if (Array.isArray(parsed) && parsed.length === 1 && typeof parsed[0] === 'string') {
+                                    return parsed[0]
+                                  } else {
+                                    return JSON.stringify(parsed, null, 2)
+                                  }
+                                } catch {
+                                  // If not JSON, check if it's a quoted string
+                                  if (tx.returnValue.startsWith('"') && tx.returnValue.endsWith('"')) {
+                                    return tx.returnValue.slice(1, -1)
+                                  }
+                                  // Otherwise return as-is
+                                  return tx.returnValue
+                                }
+                              })()}
+                            </Typography>
+                          </Box>
+                        )}
+                        {tx.error && (
+                          <Typography variant="body2" color="error" component="div">
+                            Error: {tx.error}
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                    primaryTypographyProps={{ component: 'div' }}
+                    secondaryTypographyProps={{ component: 'div' }}
+                    sx={{ 
+                      flex: 1,
+                      minWidth: 0,
+                      mr: { xs: 0, sm: 2 }
+                    }}
+                  />
+                  {tx.type === 'deployment' && tx.contractAddress && (
+                    <Box sx={{ 
+                      flexShrink: 0,
+                      width: { xs: '100%', sm: 'auto' },
+                      display: 'flex',
+                      justifyContent: { xs: 'flex-end', sm: 'flex-start' }
+                    }}>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        startIcon={<PlayArrowIcon />}
+                        onClick={() => {
+                          if (deployedContract) {
+                            handleContractClick(deployedContract)
+                          } else {
+                            // Fallback for contracts without full details
+                            const fallbackContract: DeployedContract = {
+                              address: tx.contractAddress!,
+                              name: `Contract_${tx.contractAddress!.slice(0, 8)}`,
+                              deploymentTxId: tx.id,
+                              abi: getSmartContractAbi(tx),
+                              functions: getSmartContractAbi(tx)
+                                .filter((item: any) => item.type === 'function')
+                                .map((func: any) => {
+                                  const inputs = func.inputs
+                                    .map((input: any) => `${input.type} ${input.name}`)
+                                    .join(', ')
+                                  const outputs =
+                                    func.outputs.length > 0
+                                      ? func.outputs.map((output: any) => output.type).join(', ')
+                                      : 'void'
+                                  return {
+                                    signature: `${func.name}(${inputs}) → ${outputs}`,
+                                    name: func.name,
+                                    inputs: func.inputs,
+                                    outputs: func.outputs,
+                                    stateMutability: func.stateMutability,
+                                  }
+                                }),
+                              deployedAt: tx.timestamp,
+                            }
+                            handleContractClick(fallbackContract)
+                          }
+                        }}
+                        sx={{
+                          backgroundColor: '#B05823',
+                          '&:hover': {
+                            backgroundColor: '#8B4513',
+                          },
+                          fontWeight: 'bold',
+                          minWidth: '80px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Execute
+                      </Button>
                     </Box>
-                  }
-                  secondary={
-                    <Box component="div">
-                      <Typography variant="body2" component="div">
-                        Gas Used: {tx.gasUsed.toString()}
-                      </Typography>
-                      {tx.contractAddress && (
-                        <Typography variant="body2" component="div">
-                          Contract: {tx.contractAddress.slice(0, 10)}...
-                        </Typography>
-                      )}
-                      {tx.functionName && (
-                        <Typography variant="body2" component="div">
-                          Function: {tx.functionName}
-                        </Typography>
-                      )}
-                      {tx.returnValue && (
-                        <Typography variant="body2" component="div">
-                          Return: {tx.returnValue}
-                        </Typography>
-                      )}
-                      {tx.error && (
-                        <Typography variant="body2" color="error" component="div">
-                          Error: {tx.error}
-                        </Typography>
-                      )}
-                    </Box>
-                  }
-                  primaryTypographyProps={{ component: 'div' }}
-                  secondaryTypographyProps={{ component: 'div' }}
-                />
-                {tx.type === 'deployment' && tx.contractAddress && (
-                  <ListItemSecondaryAction>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleContractSelect(tx)}
-                    >
-                      Select Contract
-                    </Button>
-                  </ListItemSecondaryAction>
-                )}
-              </ListItem>
-            ))}
+                  )}
+                </ListItem>
+              )
+            })}
           </List>
         )}
       </Paper>

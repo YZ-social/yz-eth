@@ -24,7 +24,7 @@ interface AccountManagementProps {
 export default function AccountManagement({ blockManager }: AccountManagementProps) {
   const [accounts, setAccounts] = useState<any[]>([])
   const [openDialog, setOpenDialog] = useState(false)
-  const [newAccountBalance, setNewAccountBalance] = useState('0')
+  const [newAccountBalance, setNewAccountBalance] = useState('1000000000000000000')
 
   useEffect(() => {
     updateAccounts()

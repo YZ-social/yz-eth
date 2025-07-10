@@ -1,11 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { SolidityExecutor } from '../src/solidityExecutor'
+import { BlockManager } from '../src/blockManager'
 
 describe('Web Worker Solc Integration', () => {
   let executor: SolidityExecutor
+  let blockManager: BlockManager
 
-  beforeAll(() => {
-    executor = new SolidityExecutor()
+  beforeAll(async () => {
+    blockManager = new BlockManager()
+    await blockManager.initialize()
+    executor = new SolidityExecutor(blockManager)
   })
 
   afterAll(() => {
@@ -62,17 +66,9 @@ describe('Web Worker Solc Integration', () => {
 
     const result = await executor.executeSolidity(sourceCode)
 
-    // In browser environment, this should work with real solc
-    // In Node.js environment, it might fail due to web worker limitations
-    if (typeof window !== 'undefined') {
-      expect(result.success).toBe(true)
-      expect(result.output).toContain('deployed')
-      expect(result.output).toContain('Hello from EthereumJS!')
-    } else {
-      // In Node.js, we expect compilation to work but execution might fail
-      // due to web worker not being available
-      expect(result.success).toBe(false)
-      expect(result.error).toBeTruthy()
-    }
+    // With BlockManager integration, execution should work in both environments
+    expect(result.success).toBe(true)
+    expect(result.output).toContain('deployed')
+    expect(result.output).toContain('Function main executed successfully')
   })
 })

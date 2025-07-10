@@ -168,7 +168,7 @@ export class BlockManager {
   /**
    * Create a new account with initial balance
    */
-  async createAccount(initialBalance: bigint = BigInt(0)): Promise<string> {
+  async createAccount(initialBalance: bigint = BigInt('1000000000000000000')): Promise<string> {
     const privateKey = this.generateRandomPrivateKey()
     const address = createAddressFromPrivateKey(privateKey)
 

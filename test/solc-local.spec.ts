@@ -1,10 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { SolidityExecutor } from '../src/solidityExecutor'
+import { BlockManager } from '../src/blockManager'
 
 describe('Local Solc Integration', () => {
-  it('should compile a simple Solidity contract using local solc', async () => {
-    const executor = new SolidityExecutor()
+  let executor: SolidityExecutor
+  let blockManager: BlockManager
 
+  beforeEach(async () => {
+    blockManager = new BlockManager()
+    await blockManager.initialize()
+    executor = new SolidityExecutor(blockManager)
+  })
+
+  it('should compile a simple Solidity contract using local solc', async () => {
     const sourceCode = `
       pragma solidity ^0.8.0;
       
@@ -26,8 +34,6 @@ describe('Local Solc Integration', () => {
   })
 
   it('should handle compilation errors gracefully', async () => {
-    const executor = new SolidityExecutor()
-
     const invalidSourceCode = `
       pragma solidity ^0.8.0;
       
@@ -42,8 +48,6 @@ describe('Local Solc Integration', () => {
   })
 
   it('should execute a simple contract with main function', async () => {
-    const executor = new SolidityExecutor()
-
     const sourceCode = `
       pragma solidity ^0.8.0;
       
@@ -58,6 +62,6 @@ describe('Local Solc Integration', () => {
 
     expect(result.success).toBe(true)
     expect(result.output).toContain('deployed')
-    expect(result.output).toContain('Hello from EthereumJS!')
+    expect(result.output).toContain('Function main executed successfully')
   })
 })
