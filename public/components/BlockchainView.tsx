@@ -63,6 +63,11 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
   const [functionArgs, setFunctionArgs] = useState<string>('')
   const [executionOutput, setExecutionOutput] = useState<string>('')
   const [isExecuting, setIsExecuting] = useState(false)
+  const [returnValueDialog, setReturnValueDialog] = useState<{ open: boolean; value: string; title: string }>({
+    open: false,
+    value: '',
+    title: ''
+  })
 
   useEffect(() => {
     const updateBlockchainData = () => {
@@ -477,6 +482,22 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
     setOpenDialog(false)
   }
 
+  const handleReturnValueClick = (value: string, title: string) => {
+    setReturnValueDialog({
+      open: true,
+      value: value,
+      title: title
+    })
+  }
+
+  const handleCloseReturnValueDialog = () => {
+    setReturnValueDialog({
+      open: false,
+      value: '',
+      title: ''
+    })
+  }
+
   const handleFunctionChange = (event: any) => {
     const selectedValue = event.target.value
     setSelectedFunction(selectedValue)
@@ -707,6 +728,11 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
               // Find if this transaction deployed a contract we know about
               const deployedContract = deployedContracts.find(c => c.deploymentTxId === tx.id)
               
+              // Find the contract that was called for function calls
+              const calledContract = tx.type === 'function_call' && tx.to 
+                ? deployedContracts.find(c => c.address.toLowerCase() === tx.to!.toLowerCase())
+                : null
+              
               return (
                 <ListItem
                   key={tx.id}
@@ -727,7 +753,15 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                         <span>{renderTransactionType(tx.type)}</span>
                         <span>{renderTransactionStatus(tx.status)}</span>
                         <Typography variant="body2" component="span" sx={{ fontWeight: 'bold' }}>
-                          {tx.id} - {tx.type.replace('_', ' ')}
+                          {tx.id} - {(() => {
+                            if (tx.type === 'function_call' && calledContract && tx.functionName) {
+                              return `${calledContract.name} - ${tx.functionName}()`
+                            } else if (tx.type === 'function_call' && tx.functionName) {
+                              return `Contract - ${tx.functionName}()`
+                            } else {
+                              return tx.type.replace('_', ' ')
+                            }
+                          })()}
                         </Typography>
                         {deployedContract && (
                           <Chip
@@ -737,6 +771,59 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                             icon={<CodeIcon />}
                             sx={{ ml: 1 }}
                           />
+                        )}
+                        {tx.type === 'deployment' && tx.contractAddress && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PlayArrowIcon />}
+                            onClick={() => {
+                              if (deployedContract) {
+                                handleContractClick(deployedContract)
+                              } else {
+                                // Fallback for contracts without full details
+                                const fallbackContract: DeployedContract = {
+                                  address: tx.contractAddress!,
+                                  name: `Contract_${tx.contractAddress!.slice(0, 8)}`,
+                                  deploymentTxId: tx.id,
+                                  abi: getSmartContractAbi(tx),
+                                  functions: getSmartContractAbi(tx)
+                                    .filter((item: any) => item.type === 'function')
+                                    .map((func: any) => {
+                                      const inputs = func.inputs
+                                        .map((input: any) => `${input.type} ${input.name}`)
+                                        .join(', ')
+                                      const outputs =
+                                        func.outputs.length > 0
+                                          ? func.outputs.map((output: any) => output.type).join(', ')
+                                          : 'void'
+                                      return {
+                                        signature: `${func.name}(${inputs}) → ${outputs}`,
+                                        name: func.name,
+                                        inputs: func.inputs,
+                                        outputs: func.outputs,
+                                        stateMutability: func.stateMutability,
+                                      }
+                                    }),
+                                  deployedAt: tx.timestamp,
+                                }
+                                handleContractClick(fallbackContract)
+                              }
+                            }}
+                            sx={{
+                              backgroundColor: '#B05823',
+                              '&:hover': {
+                                backgroundColor: '#8B4513',
+                              },
+                              fontWeight: 'bold',
+                              minWidth: '80px',
+                              whiteSpace: 'nowrap',
+                              ml: 1,
+                            }}
+                          >
+                            Execute
+                          </Button>
                         )}
                       </Box>
                     }
@@ -810,19 +897,45 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                             <Typography 
                               variant="body2" 
                               component="div"
+                              onClick={() => {
+                                const processedValue = (() => {
+                                  try {
+                                    const parsed = JSON.parse(tx.returnValue || '')
+                                    if (typeof parsed === 'string') {
+                                      return parsed
+                                    } else if (Array.isArray(parsed) && parsed.length === 1 && typeof parsed[0] === 'string') {
+                                      return parsed[0]
+                                    } else {
+                                      return JSON.stringify(parsed, null, 2)
+                                    }
+                                  } catch {
+                                    if (tx.returnValue && tx.returnValue.startsWith('"') && tx.returnValue.endsWith('"')) {
+                                      return tx.returnValue.slice(1, -1)
+                                    }
+                                    return tx.returnValue || ''
+                                  }
+                                })()
+                                handleReturnValueClick(processedValue, `Return Value - ${tx.functionName || 'Contract Execution'}`)
+                              }}
                               sx={{ 
-                                wordBreak: 'break-word',
                                 fontFamily: 'monospace',
                                 fontSize: '0.9rem',
                                 color: '#2e7d32',
-                                maxHeight: '100px',
-                                overflow: 'auto'
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                cursor: 'pointer',
+                                maxWidth: { xs: '150px', sm: '200px', md: '250px' },
+                                '&:hover': {
+                                  textDecoration: 'underline',
+                                  color: '#1b5e20'
+                                }
                               }}
                             >
                               {(() => {
                                 try {
                                   // Try to parse as JSON first
-                                  const parsed = JSON.parse(tx.returnValue)
+                                  const parsed = JSON.parse(tx.returnValue || '')
                                   if (typeof parsed === 'string') {
                                     return parsed
                                   } else if (Array.isArray(parsed) && parsed.length === 1 && typeof parsed[0] === 'string') {
@@ -832,11 +945,11 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                                   }
                                 } catch {
                                   // If not JSON, check if it's a quoted string
-                                  if (tx.returnValue.startsWith('"') && tx.returnValue.endsWith('"')) {
+                                  if (tx.returnValue && tx.returnValue.startsWith('"') && tx.returnValue.endsWith('"')) {
                                     return tx.returnValue.slice(1, -1)
                                   }
                                   // Otherwise return as-is
-                                  return tx.returnValue
+                                  return tx.returnValue || ''
                                 }
                               })()}
                             </Typography>
@@ -857,65 +970,6 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                       mr: { xs: 0, sm: 2 }
                     }}
                   />
-                  {tx.type === 'deployment' && tx.contractAddress && (
-                    <Box sx={{ 
-                      flexShrink: 0,
-                      width: { xs: '100%', sm: 'auto' },
-                      display: 'flex',
-                      justifyContent: { xs: 'flex-end', sm: 'flex-start' }
-                    }}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="primary"
-                        startIcon={<PlayArrowIcon />}
-                        onClick={() => {
-                          if (deployedContract) {
-                            handleContractClick(deployedContract)
-                          } else {
-                            // Fallback for contracts without full details
-                            const fallbackContract: DeployedContract = {
-                              address: tx.contractAddress!,
-                              name: `Contract_${tx.contractAddress!.slice(0, 8)}`,
-                              deploymentTxId: tx.id,
-                              abi: getSmartContractAbi(tx),
-                              functions: getSmartContractAbi(tx)
-                                .filter((item: any) => item.type === 'function')
-                                .map((func: any) => {
-                                  const inputs = func.inputs
-                                    .map((input: any) => `${input.type} ${input.name}`)
-                                    .join(', ')
-                                  const outputs =
-                                    func.outputs.length > 0
-                                      ? func.outputs.map((output: any) => output.type).join(', ')
-                                      : 'void'
-                                  return {
-                                    signature: `${func.name}(${inputs}) → ${outputs}`,
-                                    name: func.name,
-                                    inputs: func.inputs,
-                                    outputs: func.outputs,
-                                    stateMutability: func.stateMutability,
-                                  }
-                                }),
-                              deployedAt: tx.timestamp,
-                            }
-                            handleContractClick(fallbackContract)
-                          }
-                        }}
-                        sx={{
-                          backgroundColor: '#B05823',
-                          '&:hover': {
-                            backgroundColor: '#8B4513',
-                          },
-                          fontWeight: 'bold',
-                          minWidth: '80px',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        Execute
-                      </Button>
-                    </Box>
-                  )}
                 </ListItem>
               )
             })}
@@ -1146,6 +1200,65 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
             }}
           >
             {isExecuting ? 'Executing...' : 'Execute Function'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Return Value Dialog */}
+      <Dialog
+        open={returnValueDialog.open}
+        onClose={handleCloseReturnValueDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#f5f5f5',
+            border: '2px solid #2e7d32',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          },
+        }}
+      >
+        <DialogTitle>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              backgroundColor: '#2e7d32',
+              color: 'white',
+              p: 2,
+              m: -2,
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6">
+              📤 {returnValueDialog.title}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Paper
+            elevation={2}
+            sx={{ 
+              p: 2, 
+              minHeight: '200px', 
+              maxHeight: '400px',
+              overflow: 'auto', 
+              bgcolor: '#1e1e1e', 
+              color: '#4caf50',
+              fontFamily: 'monospace',
+              fontSize: '0.9rem',
+              lineHeight: 1.4,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word'
+            }}
+          >
+            {returnValueDialog.value}
+          </Paper>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseReturnValueDialog} color="primary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>
