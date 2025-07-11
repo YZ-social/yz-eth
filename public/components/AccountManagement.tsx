@@ -1,4 +1,4 @@
-import { Add as AddIcon, Refresh as RefreshIcon } from '@mui/icons-material'
+import { Add as AddIcon, Refresh as RefreshIcon, SwapHoriz as SwapHorizIcon } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -16,6 +16,7 @@ import {
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { BlockManager } from '../../src/blockManager'
+import { TransferModal } from './index'
 
 interface AccountManagementProps {
   blockManager: BlockManager
@@ -25,6 +26,7 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
   const [accounts, setAccounts] = useState<any[]>([])
   const [openDialog, setOpenDialog] = useState(false)
   const [newAccountBalance, setNewAccountBalance] = useState('1000000000000000000')
+  const [transferModalOpen, setTransferModalOpen] = useState(false)
 
   useEffect(() => {
     updateAccounts()
@@ -62,6 +64,14 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
     updateAccounts()
   }
 
+  const handleOpenTransferModal = () => {
+    setTransferModalOpen(true)
+  }
+
+  const handleCloseTransferModal = () => {
+    setTransferModalOpen(false)
+  }
+
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>
@@ -82,8 +92,17 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
           color="secondary"
           startIcon={<RefreshIcon />}
           onClick={handleRefresh}
+          sx={{ mr: 1 }}
         >
           Refresh
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<SwapHorizIcon />}
+          onClick={handleOpenTransferModal}
+        >
+          Transfer
         </Button>
       </Box>
       <Paper elevation={1} sx={{ p: 3, minHeight: '300px', maxHeight: '500px', overflowY: 'auto' }}>
@@ -135,6 +154,11 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
           </Button>
         </DialogActions>
       </Dialog>
+      <TransferModal
+        open={transferModalOpen}
+        onClose={handleCloseTransferModal}
+        blockManager={blockManager}
+      />
     </Box>
   )
 }

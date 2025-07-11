@@ -33,7 +33,6 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('dashboard')
   const [blockManager] = useState(new BlockManager())
   const [executor] = useState(new SolidityExecutor(blockManager))
-  const [transferModalOpen, setTransferModalOpen] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -46,24 +45,10 @@ export default function App() {
     setActiveSection(section)
   }
 
-  const handleOpenTransferModal = () => {
-    setTransferModalOpen(true)
-  }
-
-  const handleCloseTransferModal = () => {
-    setTransferModalOpen(false)
-  }
-
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, section: 'dashboard' },
     { text: 'Code Editor', icon: <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 'bold' }}>{'{'}{'}'}</span>, section: 'code' },
     { text: 'Accounts', icon: <AccountBalanceWalletIcon />, section: 'accounts' },
-    {
-      text: 'Transfer',
-      icon: <SwapHorizIcon />,
-      section: 'transfer',
-      action: handleOpenTransferModal,
-    },
   ]
 
   return (
@@ -93,7 +78,7 @@ export default function App() {
               <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
                 <ListItemButton
                   selected={activeSection === item.section}
-                  onClick={() => (item.action ? item.action() : handleSectionChange(item.section))}
+                  onClick={() => handleSectionChange(item.section)}
                   sx={{
                     minHeight: 48,
                     justifyContent: isMobile ? 'initial' : 'initial',
@@ -148,11 +133,6 @@ export default function App() {
         )}
         {activeSection === 'code' && <CodeEditor executor={executor} blockManager={blockManager} />}
         {activeSection === 'accounts' && <AccountManagement blockManager={blockManager} />}
-        <TransferModal
-          open={transferModalOpen}
-          onClose={handleCloseTransferModal}
-          blockManager={blockManager}
-        />
       </Box>
     </Box>
   )
