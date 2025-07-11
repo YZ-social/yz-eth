@@ -56,7 +56,7 @@ export default function App() {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, section: 'dashboard' },
-    { text: 'Code Editor', icon: <CodeIcon />, section: 'code' },
+    { text: 'Code Editor', icon: <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 'bold' }}>{'{'}{'}'}</span>, section: 'code' },
     { text: 'Accounts', icon: <AccountBalanceWalletIcon />, section: 'accounts' },
     {
       text: 'Transfer',
