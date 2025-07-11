@@ -17,7 +17,7 @@ import { ethers } from 'ethers'
 
 export interface Transaction {
   id: string
-  type: 'deployment' | 'function_call' | 'eth_transfer'
+  type: 'deployment' | 'function_call' | 'contract_call' | 'eth_transfer' | 'account_creation'
   from: string
   to?: string
   data: string
@@ -28,12 +28,27 @@ export interface Transaction {
   timestamp: number
   status: 'pending' | 'executed' | 'failed'
   error?: string
+  errorDetails?: {
+    reason: string
+    gasUsed: bigint
+    revertData?: string
+    opcode?: string
+  }
   contractAddress?: string
   functionName?: string
   functionArgs?: any[]
   returnValue?: string
   logs: LogEntry[]
   metadata: TransactionMetadata
+  // For contract-to-contract calls
+  internalCalls?: {
+    from: string
+    to: string
+    functionName: string
+    args: any[]
+    returnValue?: string
+    gasUsed: bigint
+  }[]
 }
 
 export interface LogEntry {
@@ -122,6 +137,34 @@ export class BlockManager {
         if (!account || account.balance === BigInt(0)) {
           const newAccount = new Account(BigInt(0), BigInt(1000000000000000000n)) // 1 ETH
           await this.stateManager.putAccount(this.defaultAddress, newAccount)
+          
+          // Create a transaction record for the initial account creation
+          const initialAccountTransaction: Transaction = {
+            id: `tx_${++this.transactionCounter}`,
+            type: 'account_creation',
+            from: '0x0000000000000000000000000000000000000000', // Genesis address
+            to: this.defaultAddress.toString(),
+            data: '0x', // Empty data for account creation
+            gasUsed: BigInt(0),
+            gasPrice: BigInt(20000000000), // 20 gwei
+            nonce: BigInt(0),
+            value: BigInt(1000000000000000000n), // 1 ETH
+            timestamp: Date.now(),
+            status: 'executed',
+            logs: [],
+            metadata: {
+              blockNumber: this.currentBlock.blockNumber,
+              transactionIndex: this.currentBlock.transactions.length,
+              gasLimit: BigInt(0), // No gas used for account creation
+              effectiveGasPrice: BigInt(20000000000),
+              cumulativeGasUsed: BigInt(0),
+              status: true,
+              events: [],
+            },
+          }
+
+          // Add transaction to current block
+          this.currentBlock.transactions.push(initialAccountTransaction)
         }
 
         // Initialize accounts tracking
@@ -178,6 +221,34 @@ export class BlockManager {
     // Track the created account and its private key
     this.createdAccounts.add(address.toString())
     this.accountPrivateKeys.set(address.toString(), privateKey)
+
+    // Create a transaction record for account creation
+    const transaction: Transaction = {
+      id: `tx_${++this.transactionCounter}`,
+      type: 'account_creation',
+      from: this.defaultAddress.toString(),
+      to: address.toString(),
+      data: '0x', // Empty data for account creation
+      gasUsed: BigInt(0),
+      gasPrice: BigInt(20000000000), // 20 gwei
+      nonce: await this.getNonce(),
+      value: initialBalance,
+      timestamp: Date.now(),
+      status: 'executed',
+      logs: [],
+      metadata: {
+        blockNumber: this.currentBlock.blockNumber,
+        transactionIndex: this.currentBlock.transactions.length,
+        gasLimit: BigInt(0), // No gas used for account creation
+        effectiveGasPrice: BigInt(20000000000),
+        cumulativeGasUsed: BigInt(0),
+        status: true,
+        events: [],
+      },
+    }
+
+    // Add transaction to current block
+    this.currentBlock.transactions.push(transaction)
 
     // Update accounts tracking
     await this.updateAccountsTracking()
@@ -500,6 +571,145 @@ export class BlockManager {
     } catch (error) {
       transaction.status = 'failed'
       transaction.error = error instanceof Error ? error.message : String(error)
+      
+      // Enhanced error details for failed transactions
+      transaction.errorDetails = {
+        reason: error instanceof Error ? error.message : String(error),
+        gasUsed: transaction.gasUsed,
+        revertData: error instanceof Error ? error.stack : undefined,
+        opcode: 'REVERT'
+      }
+      
+      this.currentBlock.transactions.push(transaction)
+    }
+
+    return transaction
+  }
+
+  /**
+   * Execute a contract function call from another contract (contract-to-contract call)
+   */
+  async executeContractToContractCall(
+    fromContractAddress: string,
+    toContractAddress: string,
+    abi: any[],
+    functionName: string,
+    args: any[] = [],
+    value: bigint = BigInt(0)
+  ): Promise<Transaction> {
+    const nonce = await this.getNonce()
+    const gasPrice = BigInt(20000000000) // 20 gwei
+
+    const iface = new ethers.Interface(abi)
+    const functionFragment = iface.getFunction(functionName)
+
+    if (!functionFragment) {
+      throw new Error(`Function ${functionName} not found in ABI`)
+    }
+
+    const data = iface.encodeFunctionData(functionFragment, args)
+
+    const transaction: Transaction = {
+      id: `tx_${++this.transactionCounter}`,
+      type: 'contract_call',
+      from: fromContractAddress,
+      to: toContractAddress,
+      data: data,
+      gasUsed: BigInt(0),
+      gasPrice,
+      nonce,
+      value,
+      timestamp: Date.now(),
+      status: 'pending',
+      functionName,
+      functionArgs: args,
+      logs: [],
+      internalCalls: [],
+      metadata: {
+        blockNumber: this.currentBlock.blockNumber,
+        transactionIndex: this.currentBlock.transactions.length,
+        gasLimit: BigInt(5000000),
+        effectiveGasPrice: gasPrice,
+        cumulativeGasUsed: BigInt(0),
+        status: false,
+        events: [],
+      },
+    }
+
+    try {
+      const txData = {
+        to: hexToBytes(toContractAddress as `0x${string}`),
+        data: hexToBytes(data as `0x${string}`),
+        gasLimit: BigInt(5000000),
+        gasPrice,
+        value,
+        nonce,
+      }
+
+      const tx = createLegacyTx(txData, { common: this.common }).sign(this.defaultPrivateKey)
+      const result = await this.blockBuilder.addTransaction(tx)
+
+      transaction.gasUsed = result.totalGasSpent
+      transaction.status = 'executed'
+      transaction.metadata.status = true
+      transaction.metadata.cumulativeGasUsed = result.totalGasSpent
+
+      if (result.execResult.returnValue.length > 0) {
+        const returnData = bytesToHex(result.execResult.returnValue)
+        try {
+          // Try to decode the return value using the ABI
+          const decoded = iface.decodeFunctionResult(functionFragment, returnData)
+          // Convert decoded result to readable format
+          if (decoded.length === 1) {
+            // Single return value
+            transaction.returnValue = decoded[0].toString()
+          } else if (decoded.length > 1) {
+            // Multiple return values
+            transaction.returnValue = decoded.map((val: any) => val.toString()).join(', ')
+          } else {
+            // No return values
+            transaction.returnValue = 'success'
+          }
+        } catch (decodeError) {
+          // Fallback to raw hex if decoding fails
+          transaction.returnValue = returnData
+        }
+      }
+
+      // Format logs
+      if (result.execResult.logs) {
+        for (const log of result.execResult.logs) {
+          const [address, topics, logData] = log
+          const logEntry: LogEntry = {
+            address: bytesToHex(address),
+            topics: topics.map((topic: Uint8Array) => bytesToHex(topic)),
+            data: bytesToHex(logData),
+            blockNumber: this.currentBlock.blockNumber,
+            transactionIndex: this.currentBlock.transactions.length,
+            logIndex: transaction.logs.length,
+          }
+          transaction.logs.push(logEntry)
+          transaction.metadata.events.push(logEntry)
+        }
+      }
+
+      this.currentBlock.transactions.push(transaction)
+      this.currentBlock.gasUsed += transaction.gasUsed
+
+      // Update accounts tracking
+      await this.updateAccountsTracking()
+    } catch (error) {
+      transaction.status = 'failed'
+      transaction.error = error instanceof Error ? error.message : String(error)
+      
+      // Enhanced error details for failed transactions
+      transaction.errorDetails = {
+        reason: error instanceof Error ? error.message : String(error),
+        gasUsed: transaction.gasUsed,
+        revertData: error instanceof Error ? error.stack : undefined,
+        opcode: 'REVERT'
+      }
+      
       this.currentBlock.transactions.push(transaction)
     }
 

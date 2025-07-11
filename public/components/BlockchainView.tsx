@@ -27,6 +27,7 @@ import {
 import React, { useState, useEffect } from 'react'
 import { BlockManager, LogEntry, Transaction } from '../../src/blockManager'
 import { SolidityExecutor } from '../../src/solidityExecutor'
+import { formatEther } from 'ethers'
 
 interface BlockchainViewProps {
   blockManager: BlockManager
@@ -619,14 +620,21 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
     }
   }
 
-  const renderTransactionType = (type: string) => {
+  const renderTransactionType = (type: string, tx?: Transaction) => {
     switch (type) {
       case 'deployment':
         return '🏗️'
       case 'function_call':
         return '📞'
+      case 'contract_call':
+        return '🔗'
       case 'eth_transfer':
         return '💸'
+      case 'account_creation':
+        if (tx && tx.from === '0x0000000000000000000000000000000000000000') {
+          return '👑'
+        }
+        return '👤'
       default:
         return '📄'
     }
@@ -750,7 +758,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                   <ListItemText
                     primary={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                        <span>{renderTransactionType(tx.type)}</span>
+                        <span>{renderTransactionType(tx.type, tx)}</span>
                         <span>{renderTransactionStatus(tx.status)}</span>
                         <Typography variant="body2" component="span" sx={{ fontWeight: 'bold' }}>
                           {tx.id} - {(() => {
@@ -758,6 +766,16 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                               return `${calledContract.name} - ${tx.functionName}()`
                             } else if (tx.type === 'function_call' && tx.functionName) {
                               return `Contract - ${tx.functionName}()`
+                            } else if (tx.type === 'contract_call' && tx.functionName) {
+                              return `Contract Call - ${tx.functionName}()`
+                            } else if (tx.type === 'account_creation') {
+                              if (tx.from === '0x0000000000000000000000000000000000000000') {
+                                return `Genesis Account - ${tx.to?.slice(0, 8)}...`
+                              } else {
+                                return `Account Creation - ${tx.to?.slice(0, 8)}...`
+                              }
+                            } else if (tx.type === 'eth_transfer') {
+                              return `ETH Transfer - ${formatEther(tx.value)} ETH`
                             } else {
                               return tx.type.replace('_', ' ')
                             }
@@ -844,6 +862,66 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                           >
                             Contract: {tx.contractAddress}
                           </Typography>
+                        )}
+                        {tx.type === 'account_creation' && (
+                          <Box sx={{ mt: 1, p: 1, bgcolor: tx.from === '0x0000000000000000000000000000000000000000' ? 'purple.50' : 'blue.50', borderRadius: 1 }}>
+                            <Typography variant="body2" component="div" sx={{ fontWeight: 'bold', color: tx.from === '0x0000000000000000000000000000000000000000' ? 'purple.700' : 'blue.700' }}>
+                              {tx.from === '0x0000000000000000000000000000000000000000' ? '👑 Genesis Account:' : '👤 Account Created:'}
+                            </Typography>
+                            <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              Address: {tx.to}
+                            </Typography>
+                            <Typography variant="body2" component="div">
+                              Initial Balance: {formatEther(tx.value)} ETH
+                            </Typography>
+                            {tx.from === '0x0000000000000000000000000000000000000000' && (
+                              <Typography variant="body2" component="div" sx={{ fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                This is the default account created during blockchain initialization
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
+                        {tx.type === 'eth_transfer' && (
+                          <Box sx={{ mt: 1, p: 1, bgcolor: 'green.50', borderRadius: 1 }}>
+                            <Typography variant="body2" component="div" sx={{ fontWeight: 'bold', color: 'green.700' }}>
+                              💸 ETH Transfer:
+                            </Typography>
+                            <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              From: {tx.from}
+                            </Typography>
+                            <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              To: {tx.to}
+                            </Typography>
+                            <Typography variant="body2" component="div" sx={{ fontWeight: 'bold' }}>
+                              Amount: {formatEther(tx.value)} ETH
+                            </Typography>
+                          </Box>
+                        )}
+                        {tx.type === 'contract_call' && (
+                          <Box sx={{ mt: 1, p: 1, bgcolor: 'orange.50', borderRadius: 1 }}>
+                            <Typography variant="body2" component="div" sx={{ fontWeight: 'bold', color: 'orange.700' }}>
+                              🔗 Contract-to-Contract Call:
+                            </Typography>
+                            <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              From Contract: {tx.from}
+                            </Typography>
+                            <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              To Contract: {tx.to}
+                            </Typography>
+                            <Typography variant="body2" component="div">
+                              Function: {tx.functionName}
+                            </Typography>
+                            {tx.functionArgs && tx.functionArgs.length > 0 && (
+                              <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                                Args: {JSON.stringify(tx.functionArgs)}
+                              </Typography>
+                            )}
+                            {tx.value > 0 && (
+                              <Typography variant="body2" component="div">
+                                Value Sent: {formatEther(tx.value)} ETH
+                              </Typography>
+                            )}
+                          </Box>
                         )}
                         {deployedContract && (
                           <Box sx={{ mt: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
@@ -956,9 +1034,49 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                           </Box>
                         )}
                         {tx.error && (
-                          <Typography variant="body2" color="error" component="div">
-                            Error: {tx.error}
-                          </Typography>
+                          <Box sx={{ mt: 1, p: 1, bgcolor: 'red.50', borderRadius: 1 }}>
+                            <Typography variant="body2" component="div" sx={{ fontWeight: 'bold', color: 'red.700' }}>
+                              ❌ Transaction Failed:
+                            </Typography>
+                            <Typography variant="body2" component="div" color="error">
+                              {tx.error}
+                            </Typography>
+                            {tx.errorDetails && (
+                              <Box sx={{ mt: 1 }}>
+                                <Typography variant="body2" component="div" sx={{ fontWeight: 'bold' }}>
+                                  Error Details:
+                                </Typography>
+                                <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                                  Reason: {tx.errorDetails.reason}
+                                </Typography>
+                                <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                                  Gas Used: {tx.errorDetails.gasUsed.toString()}
+                                </Typography>
+                                {tx.errorDetails.opcode && (
+                                  <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                                    Opcode: {tx.errorDetails.opcode}
+                                  </Typography>
+                                )}
+                                {tx.errorDetails.revertData && (
+                                  <Typography 
+                                    variant="body2" 
+                                    component="div" 
+                                    sx={{ 
+                                      fontFamily: 'monospace', 
+                                      fontSize: '0.7rem',
+                                      backgroundColor: 'grey.100',
+                                      padding: '4px',
+                                      borderRadius: '2px',
+                                      maxHeight: '100px',
+                                      overflow: 'auto'
+                                    }}
+                                  >
+                                    Revert Data: {tx.errorDetails.revertData}
+                                  </Typography>
+                                )}
+                              </Box>
+                            )}
+                          </Box>
                         )}
                       </Box>
                     }

@@ -469,4 +469,66 @@ export class SolidityExecutor {
       abi: info.abi,
     }))
   }
+
+  /**
+   * Execute a contract-to-contract call
+   */
+  async executeContractToContractCall(
+    fromContractAddress: string,
+    toContractAddress: string,
+    functionName: string,
+    args: any[] = [],
+    value: bigint = BigInt(0)
+  ): Promise<ExecutionResult> {
+    try {
+      // Get the ABI for the target contract
+      const targetContract = this.getContractByAddress(toContractAddress)
+      if (!targetContract) {
+        return {
+          success: false,
+          output: '',
+          gasUsed: BigInt(0),
+          logs: [],
+          error: `Contract at address ${toContractAddress} not found`,
+        }
+      }
+
+      // Execute the contract-to-contract call
+      const tx = await this.blockManager.executeContractToContractCall(
+        fromContractAddress,
+        toContractAddress,
+        targetContract.abi,
+        functionName,
+        args,
+        value
+      )
+
+      if (tx.status === 'failed') {
+        return {
+          success: false,
+          output: '',
+          gasUsed: tx.gasUsed,
+          logs: tx.logs,
+          error: tx.error || 'Contract-to-contract call failed',
+        }
+      }
+
+      return {
+        success: true,
+        output: `Contract-to-contract call executed successfully\nFunction: ${functionName}\nReturn value: ${tx.returnValue || 'None'}`,
+        gasUsed: tx.gasUsed,
+        logs: tx.logs,
+        transactionId: tx.id,
+        contractAddress: toContractAddress,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        output: '',
+        gasUsed: BigInt(0),
+        logs: [],
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  }
 }
