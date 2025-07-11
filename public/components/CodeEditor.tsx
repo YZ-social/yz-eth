@@ -693,6 +693,192 @@ contract ERC20 is IERC20 {
 }`,
     },
   ],
+  Events: [
+    {
+      name: 'Event Counter',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract EventCounter {
+    uint256 private count = 0;
+    
+    // Define events
+    event CountIncremented(address indexed user, uint256 newCount, uint256 timestamp);
+    event CountReset(address indexed user, uint256 timestamp);
+    event CountSet(address indexed user, uint256 oldCount, uint256 newCount, uint256 timestamp);
+    
+    function increment() public {
+        count++;
+        // Emit event when count is incremented
+        emit CountIncremented(msg.sender, count, block.timestamp);
+    }
+    
+    function reset() public {
+        uint256 oldCount = count;
+        count = 0;
+        // Emit event when count is reset
+        emit CountReset(msg.sender, block.timestamp);
+    }
+    
+    function setCount(uint256 newCount) public {
+        uint256 oldCount = count;
+        count = newCount;
+        // Emit event when count is set
+        emit CountSet(msg.sender, oldCount, newCount, block.timestamp);
+    }
+    
+    function getCount() public view returns (uint256) {
+        return count;
+    }
+    
+    function main() public {
+        increment();
+        increment();
+        setCount(10);
+        increment();
+    }
+}`,
+    },
+    {
+      name: 'Event Logger',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract EventLogger {
+    // Different types of events
+    event UserRegistered(address indexed user, string name, uint256 timestamp);
+    event UserUpdated(address indexed user, string oldName, string newName, uint256 timestamp);
+    event UserDeleted(address indexed user, uint256 timestamp);
+    event MessageSent(address indexed from, address indexed to, string message, uint256 timestamp);
+    
+    mapping(address => string) private userNames;
+    mapping(address => bool) private userExists;
+    
+    function registerUser(string memory name) public {
+        require(!userExists[msg.sender], "User already exists");
+        userNames[msg.sender] = name;
+        userExists[msg.sender] = true;
+        emit UserRegistered(msg.sender, name, block.timestamp);
+    }
+    
+    function updateUser(string memory newName) public {
+        require(userExists[msg.sender], "User does not exist");
+        string memory oldName = userNames[msg.sender];
+        userNames[msg.sender] = newName;
+        emit UserUpdated(msg.sender, oldName, newName, block.timestamp);
+    }
+    
+    function deleteUser() public {
+        require(userExists[msg.sender], "User does not exist");
+        delete userNames[msg.sender];
+        delete userExists[msg.sender];
+        emit UserDeleted(msg.sender, block.timestamp);
+    }
+    
+    function sendMessage(address to, string memory message) public {
+        require(userExists[msg.sender], "Sender not registered");
+        require(userExists[to], "Recipient not registered");
+        emit MessageSent(msg.sender, to, message, block.timestamp);
+    }
+    
+    function getUserName(address user) public view returns (string memory) {
+        return userNames[user];
+    }
+    
+    function main() public {
+        registerUser("Alice");
+        updateUser("Alice Smith");
+        sendMessage(address(0x123), "Hello World!");
+    }
+}`,
+    },
+    {
+      name: 'Token Events',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract TokenEvents {
+    string public name = "Event Token";
+    string public symbol = "EVT";
+    uint8 public decimals = 18;
+    uint256 public totalSupply = 1000000 * 10**18;
+    
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    
+    // Standard ERC20 events
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    
+    // Custom events
+    event TokensMinted(address indexed to, uint256 amount, uint256 timestamp);
+    event TokensBurned(address indexed from, uint256 amount, uint256 timestamp);
+    event EmergencyStop(address indexed by, uint256 timestamp);
+    
+    bool public paused = false;
+    
+    constructor() {
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+    
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused");
+        _;
+    }
+    
+    function transfer(address to, uint256 amount) public whenNotPaused returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+    
+    function approve(address spender, uint256 amount) public whenNotPaused returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+    
+    function transferFrom(address from, address to, uint256 amount) public whenNotPaused returns (bool) {
+        require(balanceOf[from] >= amount, "Insufficient balance");
+        require(allowance[from][msg.sender] >= amount, "Insufficient allowance");
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        allowance[from][msg.sender] -= amount;
+        emit Transfer(from, to, amount);
+        return true;
+    }
+    
+    function mint(address to, uint256 amount) public whenNotPaused {
+        balanceOf[to] += amount;
+        totalSupply += amount;
+        emit TokensMinted(to, amount, block.timestamp);
+        emit Transfer(address(0), to, amount);
+    }
+    
+    function burn(uint256 amount) public whenNotPaused {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        totalSupply -= amount;
+        emit TokensBurned(msg.sender, amount, block.timestamp);
+        emit Transfer(msg.sender, address(0), amount);
+    }
+    
+    function emergencyStop() public {
+        paused = true;
+        emit EmergencyStop(msg.sender, block.timestamp);
+    }
+    
+    function main() public {
+        mint(address(0x123), 1000 * 10**18);
+        transfer(address(0x456), 500 * 10**18);
+        burn(100 * 10**18);
+    }
+}`,
+    },
+  ],
 }
 
 export default function CodeEditor({ executor, blockManager }: CodeEditorProps) {
