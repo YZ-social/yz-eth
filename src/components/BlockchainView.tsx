@@ -601,7 +601,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
   const renderTransactionType = (type: string) => {
     switch (type) {
       case 'deployment':
-        return '🏗️'
+        return '📝'
       case 'function_call':
         return '📞'
       case 'eth_transfer':
@@ -766,7 +766,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                   <Box
                     sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1 }}
                   >
-                    <CodeIcon color="primary" />
+                    <span style={{ fontSize: '1.2rem' }}>📝</span>
                     <Typography variant="body2" component="span" sx={{ fontWeight: 'bold' }}>
                       {contract.name}
                     </Typography>

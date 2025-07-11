@@ -69,6 +69,11 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
     value: '',
     title: ''
   })
+  const [eventDataDialog, setEventDataDialog] = useState<{ open: boolean; value: string; title: string }>({
+    open: false,
+    value: '',
+    title: ''
+  })
 
   useEffect(() => {
     const updateBlockchainData = () => {
@@ -499,6 +504,22 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
     })
   }
 
+  const handleEventDataClick = (data: string, title: string) => {
+    setEventDataDialog({
+      open: true,
+      value: data,
+      title: title
+    })
+  }
+
+  const handleCloseEventDataDialog = () => {
+    setEventDataDialog({
+      open: false,
+      value: '',
+      title: ''
+    })
+  }
+
   const handleFunctionChange = (event: any) => {
     const selectedValue = event.target.value
     setSelectedFunction(selectedValue)
@@ -623,7 +644,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
   const renderTransactionType = (type: string, tx?: Transaction) => {
     switch (type) {
       case 'deployment':
-        return '💻'
+        return '📝'
       case 'function_call':
         return '▶️'
       case 'contract_call':
@@ -684,6 +705,11 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         )}
       </Box>
     )
+  }
+
+  const truncateEventData = (data: string, maxLength: number = 50) => {
+    if (data.length <= maxLength) return data
+    return data.substring(0, maxLength) + '...'
   }
 
   return (
@@ -786,7 +812,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                             label={deployedContract.name}
                             size="small"
                             color="primary"
-                            icon={<CodeIcon />}
+                            icon={<span>📝</span>}
                             sx={{ ml: 1 }}
                           />
                         )}
@@ -1119,7 +1145,28 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                         Topics: {log.topics.join(', ')}
                       </Typography>
                       <Typography variant="body2" component="div">
-                        Data: {log.data}
+                        Data: 
+                        <span
+                          onClick={() => handleEventDataClick(log.data, `Event Log #${index} Data`)}
+                          style={{
+                            fontFamily: 'monospace',
+                            backgroundColor: '#f0f0f0',
+                            padding: '2px 4px',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            color: '#1976d2',
+                            marginLeft: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#e3f2fd'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f0f0f0'
+                          }}
+                        >
+                          {truncateEventData(log.data)}
+                        </span>
                       </Typography>
                       <Typography variant="body2" component="div">
                         Block: {log.blockNumber.toString()}
@@ -1161,7 +1208,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
               mb: 2,
             }}
           >
-            <CodeIcon />
+            <span>📝</span>
             Execute Contract Function
             {selectedContract && (
               <Typography variant="subtitle2" sx={{ ml: 'auto', opacity: 0.9 }}>
@@ -1376,6 +1423,65 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseReturnValueDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Event Data Dialog */}
+      <Dialog
+        open={eventDataDialog.open}
+        onClose={handleCloseEventDataDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#f5f5f5',
+            border: '2px solid #1976d2',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          },
+        }}
+      >
+        <DialogTitle>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              backgroundColor: '#1976d2',
+              color: 'white',
+              p: 2,
+              m: -2,
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6">
+              📋 {eventDataDialog.title}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Paper
+            elevation={2}
+            sx={{ 
+              p: 2, 
+              minHeight: '200px', 
+              maxHeight: '400px',
+              overflow: 'auto', 
+              bgcolor: '#1e1e1e', 
+              color: '#2196f3',
+              fontFamily: 'monospace',
+              fontSize: '0.9rem',
+              lineHeight: 1.4,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word'
+            }}
+          >
+            {eventDataDialog.value}
+          </Paper>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEventDataDialog} color="primary">
             Close
           </Button>
         </DialogActions>
