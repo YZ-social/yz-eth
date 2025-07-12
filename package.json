@@ -1,6 +1,6 @@
 {
   "name": "yz-eth",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "YZ ETH Blockchain Simulator - A web-based Solidity execution environment using EthereumJS VM",
   "keywords": [
     "ethereum",
@@ -13,13 +13,13 @@
     "simulator",
     "yz"
   ],
-  "homepage": "https://github.com/YourUsername/YZ-ETH#readme",
+  "homepage": "https://davidasmith.github.io/yz-eth/",
   "bugs": {
-    "url": "https://github.com/YourUsername/YZ-ETH/issues"
+    "url": "https://github.com/davidasmith/yz-eth/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/YourUsername/YZ-ETH.git"
+    "url": "https://github.com/davidasmith/yz-eth.git"
   },
   "license": "MPL-2.0",
   "author": "EthereumJS Team",
@@ -61,7 +61,9 @@
     "test:node": "npx vitest run -c vitest.config.ts",
     "tsc": "tsc --noEmit",
     "dev": "npm run build:worker && vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist/web",
+    "predeploy": "npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -97,6 +99,7 @@
     "babelify": "^10.0.0",
     "cspell": "^8.17.5",
     "eslint": "^9.22.0",
+    "gh-pages": "^6.1.1",
     "happy-dom": "^15.11.6",
     "typedoc": "^0.28.3",
     "typedoc-plugin-markdown": "^4.6.3",

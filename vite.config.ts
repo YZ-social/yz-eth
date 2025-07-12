@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   root: 'public',
+  base: process.env.NODE_ENV === 'production' ? '/yz-eth/' : '/',
   build: {
     outDir: '../dist/web',
     assetsDir: 'assets',

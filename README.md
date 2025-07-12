@@ -4,9 +4,11 @@
 
 # YZ ETH Blockchain Simulator
 
-[![Version](https://img.shields.io/badge/version-0.2.6-blue.svg)](https://github.com/YourUsername/YZ-ETH)
+[![Version](https://img.shields.io/badge/version-0.3.3-blue.svg)](https://github.com/davidasmith/yz-eth)
 [![License](https://img.shields.io/badge/license-MPL--2.0-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json)
+[![Deploy](https://github.com/davidasmith/yz-eth/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/davidasmith/yz-eth/actions)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://davidasmith.github.io/yz-eth/)
 
 A **web-based Solidity execution environment** using EthereumJS VM that provides a complete blockchain simulation experience. YZ-ETH allows developers to write, compile, deploy, and interact with smart contracts in a fully simulated Ethereum environment—all running locally in your browser.
 
@@ -53,16 +55,24 @@ YZ-ETH is an educational and development tool that simulates a complete Ethereum
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 🌐 **Try it Online**
+
+**Live Demo**: [https://davidasmith.github.io/yz-eth/](https://davidasmith.github.io/yz-eth/)
+
+No installation required! The application runs entirely in your browser.
+
+### 💻 **Local Development**
+
+#### Prerequisites
 
 - **Node.js** >= 18.0.0
 - **npm** >= 8.0.0
 
-### Installation
+#### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/YourUsername/YZ-ETH.git
+git clone https://github.com/davidasmith/yz-eth.git
 cd yz-eth
 
 # Install dependencies
@@ -72,16 +82,16 @@ npm install --legacy-peer-deps
 npm run build:worker
 ```
 
-### Development
+#### Development
 
 ```bash
 # Start the development server
 npm run dev
 
-# Open your browser to http://localhost:3000
+# Open your browser to http://localhost:3001
 ```
 
-### Production Build
+#### Production Build
 
 ```bash
 # Build for production
@@ -90,6 +100,20 @@ npm run build
 # Preview production build
 npm run preview
 ```
+
+### 🚀 **GitHub Pages Deployment**
+
+The application is configured for automatic deployment to GitHub Pages:
+
+```bash
+# Manual deployment
+npm run deploy
+
+# Or push to main branch for automatic deployment
+git push origin main
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ## 📖 How to Use
 
