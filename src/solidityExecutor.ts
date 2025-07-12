@@ -105,31 +105,38 @@ let solcWorker: SolcWorker | null = null
 
 async function getSolc(): Promise<any> {
   if (typeof window !== 'undefined') {
-    // Browser environment - use web worker
-    if (!solcWorker) {
-      solcWorker = new SolcWorker()
-    }
+    // Browser environment - try to use web worker, but fallback if it fails
+    try {
+      if (typeof Worker !== 'undefined' && !solcWorker) {
+        solcWorker = new SolcWorker()
+      }
 
-    // Wait for worker to be ready
-    let attempts = 0
-    while (!solcWorker.ready && attempts < 50) {
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      attempts++
-    }
+      // Wait for worker to be ready
+      if (solcWorker) {
+        let attempts = 0
+        while (!solcWorker.ready && attempts < 50) {
+          await new Promise((resolve) => setTimeout(resolve, 100))
+          attempts++
+        }
 
-    if (!solcWorker.ready) {
-      throw new Error('Solc worker failed to initialize')
-    }
+        if (solcWorker.ready) {
+          return solcWorker
+        }
+      }
 
-    return solcWorker
+      // If worker failed or not available, fall back to web-solc
+      console.log('Worker not available or failed, falling back to web-solc')
+    } catch (error) {
+      console.log('Worker initialization failed, falling back to web-solc:', error)
+    }
   }
 
-  // Node.js environment - fallback to regular solc
+  // Browser environment fallback - use web-solc
   try {
-    const solcModule = await import('solc')
-    return solcModule.default || solcModule
+    const webSolc = await import('@usecannon/web-solc')
+    return webSolc.default || webSolc
   } catch (error) {
-    console.error('Failed to load Node.js solc:', error)
+    console.error('Failed to load web-solc:', error)
     throw new Error('Failed to load Solidity compiler')
   }
 }

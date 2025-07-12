@@ -14,6 +14,7 @@ export default defineConfig({
         singleThread: true,
       },
     },
+    setupFiles: ['./test/setup-browser.ts'],
   },
   esbuild: {
     target: 'es2020',

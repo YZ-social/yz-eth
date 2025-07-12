@@ -103,8 +103,13 @@ export class BlockManager {
   private accounts: Map<string, AccountInfo> = new Map()
   private createdAccounts: Set<string> = new Set()
   private accountPrivateKeys: Map<string, Uint8Array> = new Map()
+  private transactionUpdateCallbacks: Array<() => void> = []
+  private isInitialized: boolean = false
+  private initializationPromise: Promise<void> | null = null
+  private instanceId: string
 
   constructor() {
+    this.instanceId = Math.random().toString(36).substring(2, 15)
     this.common = new Common({ chain: Mainnet, hardfork: Hardfork.Berlin })
     this.stateManager = new MerkleStateManager()
     this.vm = null
@@ -127,7 +132,38 @@ export class BlockManager {
     }
   }
 
+  // Add callback registration methods
+  onTransactionUpdate(callback: () => void) {
+    this.transactionUpdateCallbacks.push(callback)
+  }
+
+  private notifyTransactionUpdate() {
+    this.transactionUpdateCallbacks.forEach(callback => callback())
+  }
+
   async initialize() {
+    // Prevent duplicate initialization
+    if (this.isInitialized) {
+      return
+    }
+    
+    // If initialization is already in progress, wait for it to complete
+    if (this.initializationPromise) {
+      await this.initializationPromise
+      return
+    }
+    
+    // Create and store the initialization promise
+    this.initializationPromise = this.performInitialization()
+    
+    try {
+      await this.initializationPromise
+    } finally {
+      this.initializationPromise = null
+    }
+  }
+  
+  private async performInitialization() {
     try {
       if (!this.vm) {
         this.vm = await createVM({ common: this.common, stateManager: this.stateManager })
@@ -165,6 +201,7 @@ export class BlockManager {
 
           // Add transaction to current block
           this.currentBlock.transactions.push(initialAccountTransaction)
+          this.notifyTransactionUpdate()
         }
 
         // Initialize accounts tracking
@@ -201,6 +238,9 @@ export class BlockManager {
       console.error('Error initializing block builder:', error)
       throw error
     }
+
+    // Mark as initialized
+    this.isInitialized = true
   }
 
   async getNonce(): Promise<bigint> {
@@ -249,6 +289,7 @@ export class BlockManager {
 
     // Add transaction to current block
     this.currentBlock.transactions.push(transaction)
+    this.notifyTransactionUpdate()
 
     // Update accounts tracking
     await this.updateAccountsTracking()
@@ -347,10 +388,12 @@ export class BlockManager {
 
       // Update accounts tracking
       await this.updateAccountsTracking()
+      this.notifyTransactionUpdate();
     } catch (error) {
       transaction.status = 'failed'
       transaction.error = error instanceof Error ? error.message : String(error)
       this.currentBlock.transactions.push(transaction)
+      this.notifyTransactionUpdate();
     }
 
     return transaction
@@ -453,10 +496,12 @@ export class BlockManager {
 
       // Update accounts tracking
       await this.updateAccountsTracking()
+      this.notifyTransactionUpdate();
     } catch (error) {
       transaction.status = 'failed'
       transaction.error = error instanceof Error ? error.message : String(error)
       this.currentBlock.transactions.push(transaction)
+      this.notifyTransactionUpdate();
     }
 
     return transaction
@@ -568,6 +613,7 @@ export class BlockManager {
 
       // Update accounts tracking
       await this.updateAccountsTracking()
+      this.notifyTransactionUpdate();
     } catch (error) {
       transaction.status = 'failed'
       transaction.error = error instanceof Error ? error.message : String(error)
@@ -581,6 +627,7 @@ export class BlockManager {
       }
       
       this.currentBlock.transactions.push(transaction)
+      this.notifyTransactionUpdate();
     }
 
     return transaction
@@ -698,6 +745,7 @@ export class BlockManager {
 
       // Update accounts tracking
       await this.updateAccountsTracking()
+      this.notifyTransactionUpdate();
     } catch (error) {
       transaction.status = 'failed'
       transaction.error = error instanceof Error ? error.message : String(error)
@@ -711,6 +759,7 @@ export class BlockManager {
       }
       
       this.currentBlock.transactions.push(transaction)
+      this.notifyTransactionUpdate();
     }
 
     return transaction
@@ -810,5 +859,6 @@ export class BlockManager {
       totalAccounts: 0,
     }
     this.transactionCounter = 0
+    this.isInitialized = false
   }
 }
