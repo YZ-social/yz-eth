@@ -2,6 +2,7 @@ import {
   Code as CodeIcon,
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material'
 import {
   Box,
@@ -1189,51 +1190,57 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: '#f5f5f5',
-            border: '2px solid #B05823',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            borderRadius: 2,
+            maxHeight: '80vh',
           },
         }}
       >
-        <DialogTitle>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              backgroundColor: '#B05823',
-              color: 'white',
-              p: 2,
-              m: -2,
-              mb: 2,
-            }}
-          >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            pb: 1,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <span>📝</span>
-            Execute Contract Function
+            <Typography variant="h6" component="span">
+              Execute Contract Function
+            </Typography>
             {selectedContract && (
-              <Typography variant="subtitle2" sx={{ ml: 'auto', opacity: 0.9 }}>
-                {selectedContract.name}
+              <Typography variant="subtitle2" sx={{ ml: 1, opacity: 0.7 }}>
+                - {selectedContract.name}
               </Typography>
             )}
           </Box>
+          <IconButton onClick={handleCloseDialog} size="small">
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
-        <DialogContent>
-          <Typography variant="subtitle1" gutterBottom>
-            Contract: {selectedContract?.name || 'Unnamed Contract'}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ fontFamily: 'monospace', mb: 2, p: 1, bgcolor: 'grey.100', borderRadius: 1 }}
-          >
-            Address: {selectedContract?.address || 'N/A'}
-          </Typography>
-
-          {selectedContract && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" color="textSecondary">
-                Available Functions: {selectedContract.functions.length}
+        <DialogContent sx={{ px: 3, py: 2 }}>
+          {/* Contract Details */}
+          <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+              📋 Contract Details
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'start' }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Name:</Typography>
+              <Typography variant="body2">{selectedContract?.name || 'Unnamed Contract'}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Address:</Typography>
+              <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                {selectedContract?.address || 'N/A'}
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            </Box>
+          </Paper>
+
+          {/* Available Functions */}
+          {selectedContract && (
+            <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+                ⚙️ Available Functions ({selectedContract.functions.length})
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {selectedContract.functions.slice(0, 5).map((func: any) => (
                   <Chip
                     key={func.name}
@@ -1251,108 +1258,110 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                   />
                 )}
               </Box>
-            </Box>
+            </Paper>
           )}
 
-          <Divider sx={{ my: 2 }} />
+          {/* Function Execution */}
+          <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+              🔧 Function Execution
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Select
+                value={selectedFunction}
+                onChange={handleFunctionChange}
+                displayEmpty
+                fullWidth
+              >
+                <MenuItem value="" disabled>
+                  Select a function...
+                </MenuItem>
+                {selectedContract &&
+                  getContractFunctions(selectedContract).map((func: any) => (
+                    <MenuItem key={func.signature} value={func.signature}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Chip
+                          label={func.stateMutability}
+                          size="small"
+                          color={func.stateMutability === 'view' ? 'info' : 'primary'}
+                          sx={{ minWidth: '60px' }}
+                        />
+                        {func.signature}
+                      </Box>
+                    </MenuItem>
+                  ))}
+              </Select>
 
-          <Box sx={{ mt: 2 }}>
-            <Select
-              value={selectedFunction}
-              onChange={handleFunctionChange}
-              displayEmpty
-              fullWidth
-              sx={{ mb: 2 }}
-            >
-              <MenuItem value="" disabled>
-                Select a function...
-              </MenuItem>
-              {selectedContract &&
-                getContractFunctions(selectedContract).map((func: any) => (
-                  <MenuItem key={func.signature} value={func.signature}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip
-                        label={func.stateMutability}
-                        size="small"
-                        color={func.stateMutability === 'view' ? 'info' : 'primary'}
-                        sx={{ minWidth: '60px' }}
-                      />
-                      {func.signature}
-                    </Box>
-                  </MenuItem>
-                ))}
-            </Select>
+              {selectedFunction &&
+                selectedContract &&
+                (() => {
+                  const functionInfo = selectedContract.functions.find(
+                    (f: any) => f.signature === selectedFunction,
+                  )
+                  return renderFunctionInfo(functionInfo)
+                })()}
 
-            {selectedFunction &&
-              selectedContract &&
-              (() => {
-                const functionInfo = selectedContract.functions.find(
-                  (f: any) => f.signature === selectedFunction,
-                )
-                return renderFunctionInfo(functionInfo)
-              })()}
-
-            <TextField
-              label="Arguments (JSON array)"
-              value={functionArgs}
-              onChange={handleArgsChange}
-              fullWidth
-              multiline
-              rows={3}
-              sx={{ mb: 2 }}
-              disabled={!selectedFunction}
-              placeholder={
-                selectedFunction
-                  ? 'Enter arguments as JSON array, e.g., [123, "hello", true]'
-                  : 'Select a function first'
-              }
-              helperText={
-                selectedFunction
-                  ? 'Enter arguments as a JSON array. Use quotes for strings and addresses.'
-                  : ''
-              }
-            />
-            <Paper
-              elevation={2}
-              sx={{ p: 2, minHeight: '150px', overflow: 'auto', bgcolor: '#1e1e1e', color: '#fff' }}
-            >
-              <Typography variant="subtitle2" sx={{ color: '#4caf50', mb: 1 }}>
-                Execution Output:
-              </Typography>
-              {isExecuting ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100px',
-                  }}
-                >
-                  <CircularProgress size={24} sx={{ color: '#4caf50' }} />
-                  <Typography variant="body2" sx={{ ml: 2, color: '#4caf50' }}>
-                    Executing function...
-                  </Typography>
-                </Box>
-              ) : (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    whiteSpace: 'pre-wrap',
-                    fontFamily: 'monospace',
-                    fontSize: '0.9rem',
-                    lineHeight: 1.4,
-                    color: executionOutput.includes('❌') ? '#f44336' : '#fff',
-                  }}
-                >
-                  {executionOutput ||
-                    'No output yet. Select a function and click "Execute" to see results.'}
+              <TextField
+                label="Arguments (JSON array)"
+                value={functionArgs}
+                onChange={handleArgsChange}
+                fullWidth
+                multiline
+                rows={3}
+                disabled={!selectedFunction}
+                placeholder={
+                  selectedFunction
+                    ? 'Enter arguments as JSON array, e.g., [123, "hello", true]'
+                    : 'Select a function first'
+                }
+                helperText={
+                  selectedFunction
+                    ? 'Enter arguments as a JSON array. Use quotes for strings and addresses.'
+                    : ''
+                }
+              />
+              
+              <Paper
+                elevation={2}
+                sx={{ p: 2, minHeight: '150px', overflow: 'auto', bgcolor: '#1e1e1e', color: '#fff' }}
+              >
+                <Typography variant="subtitle2" sx={{ color: '#4caf50', mb: 1 }}>
+                  Execution Output:
                 </Typography>
-              )}
-            </Paper>
-          </Box>
+                {isExecuting ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '100px',
+                    }}
+                  >
+                    <CircularProgress size={24} sx={{ color: '#4caf50' }} />
+                    <Typography variant="body2" sx={{ ml: 2, color: '#4caf50' }}>
+                      Executing function...
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      whiteSpace: 'pre-wrap',
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      lineHeight: 1.4,
+                      color: executionOutput.includes('❌') ? '#f44336' : '#fff',
+                    }}
+                  >
+                    {executionOutput ||
+                      'No output yet. Select a function and click "Execute" to see results.'}
+                  </Typography>
+                )}
+              </Paper>
+            </Box>
+          </Paper>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Close</Button>
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button
             onClick={handleExecuteFunction}
             variant="contained"
@@ -1365,6 +1374,9 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
             }}
           >
             {isExecuting ? 'Executing...' : 'Execute Function'}
+          </Button>
+          <Button onClick={handleCloseDialog} variant="contained" color="primary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>

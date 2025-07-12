@@ -1,8 +1,18 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
-import { Box, IconButton } from '@mui/material';
+import { Box, IconButton, Button } from '@mui/material';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { Transaction } from '../../src/blockManager';
+
+interface DeployedContract {
+  address: string;
+  name: string;
+  deploymentTxId: string;
+  abi: any[];
+  functions: any[];
+  deployedAt: number;
+}
 
 interface TransactionSliderBarProps {
   transactions: Transaction[];
@@ -10,11 +20,13 @@ interface TransactionSliderBarProps {
   getTransactionStatusIcon: (status: string) => React.ReactNode;
   onTileClick: (tx: Transaction) => void;
   selectedTxId?: string;
+  deployedContracts?: DeployedContract[];
+  onContractExecute?: (contract: DeployedContract) => void;
 }
 
-const TILE_WIDTH = 180;
+const TILE_WIDTH = 160;
 const TILE_GAP = 12;
-const BAR_HEIGHT = 90;
+const BAR_HEIGHT = 82; // Reduced height by 25% for more compact tiles
 const OVERSCAN = 3; // Number of tiles to render outside visible area
 
 // Memoized transaction tile component
@@ -23,13 +35,19 @@ const TransactionTile = React.memo(({
   isSelected, 
   getTransactionTypeIcon, 
   getTransactionStatusIcon, 
-  onTileClick 
+  onTileClick,
+  deployedContracts,
+  onContractExecute,
+  shouldPreventClick
 }: {
   tx: Transaction;
   isSelected: boolean;
   getTransactionTypeIcon: (type: string, tx?: Transaction) => React.ReactNode;
   getTransactionStatusIcon: (status: string) => React.ReactNode;
   onTileClick: (tx: Transaction) => void;
+  deployedContracts?: DeployedContract[];
+  onContractExecute?: (contract: DeployedContract) => void;
+  shouldPreventClick?: () => boolean;
 }) => {
   // Memoize tile name calculation
   const tileName = useMemo(() => {
@@ -50,9 +68,48 @@ const TransactionTile = React.memo(({
     }
   }, [tx.type, tx.from]);
 
+  // Find deployed contract for this transaction
+  const deployedContract = useMemo(() => {
+    if (!deployedContracts) return null;
+    return deployedContracts.find(c => c.deploymentTxId === tx.id);
+  }, [deployedContracts, tx.id]);
+
+  // Find the contract that was called for function calls and contract calls
+  const calledContract = useMemo(() => {
+    if (!deployedContracts || (!['function_call', 'contract_call'].includes(tx.type)) || !tx.to) return null;
+    return deployedContracts.find(c => c.address.toLowerCase() === tx.to!.toLowerCase());
+  }, [deployedContracts, tx.type, tx.to]);
+
+  // Calculate transaction subtitle (contract name or description)
+  const transactionSubtitle = useMemo(() => {
+    if (tx.type === 'account_creation') {
+      return tx.from === '0x0000000000000000000000000000000000000000' ? 'Genesis Account' : 'Creation';
+    } else if (tx.type === 'deployment' && deployedContract) {
+      return deployedContract.name;
+    } else if ((tx.type === 'function_call' || tx.type === 'contract_call') && calledContract) {
+      return calledContract.name;
+    } else if ((tx.type === 'function_call' || tx.type === 'contract_call') && tx.functionName) {
+      return tx.functionName + '()';
+    } else if (tx.type === 'eth_transfer') {
+      return `${parseFloat((Number(tx.value) / 1e18).toFixed(4))} ETH`;
+    }
+    return null;
+  }, [tx, deployedContract, calledContract]);
+
   const handleClick = useCallback(() => {
+    // Prevent click if we're in the middle of a drag operation
+    if (shouldPreventClick && shouldPreventClick()) {
+      return;
+    }
     onTileClick(tx);
-  }, [tx, onTileClick]);
+  }, [tx, onTileClick, shouldPreventClick]);
+
+  const handleContractExecute = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent tile click
+    if (deployedContract && onContractExecute) {
+      onContractExecute(deployedContract);
+    }
+  }, [deployedContract, onContractExecute]);
 
   return (
     <Box
@@ -60,7 +117,7 @@ const TransactionTile = React.memo(({
       sx={{
         minWidth: `${TILE_WIDTH}px`,
         maxWidth: `${TILE_WIDTH}px`,
-        minHeight: `${BAR_HEIGHT + 10}px`,
+        height: `${BAR_HEIGHT + 20}px`, // Fixed height instead of minHeight
         bgcolor: isSelected ? '#e3f2fd' : '#f5f5f5',
         border: isSelected ? '2px solid #1976d2' : '1px solid #ccc',
         borderRadius: 2,
@@ -69,9 +126,8 @@ const TransactionTile = React.memo(({
         flexDirection: 'column',
         alignItems: 'flex-start',
         justifyContent: 'flex-start',
-        px: 2,
-        pt: '10px',
-        pb: '8px',
+        px: 1.2,
+        py: 1.0,
         cursor: 'pointer',
         transition: 'all 0.15s',
         '&:hover': {
@@ -81,32 +137,85 @@ const TransactionTile = React.memo(({
         overflow: 'hidden',
       }}
     >
-      {/* First line: icon, status, tile name */}
-      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', fontSize: '1.1em', mb: 0.7, mt: '9px' }}>
-        <Box sx={{ mr: 1 }}>{getTransactionTypeIcon(tx.type, tx)}</Box>
-        <Box sx={{ mr: 1 }}>{getTransactionStatusIcon(tx.status)}</Box>
+      {/* Top section: icon, status, tile name */}
+      <Box sx={{ width: '100%' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 0.2 }}>
+          <Box sx={{ mr: 0.8 }}>{getTransactionTypeIcon(tx.type, tx)}</Box>
+          <Box sx={{ mr: 0.8 }}>{getTransactionStatusIcon(tx.status)}</Box>
+          <Box
+            sx={{
+              fontWeight: 700,
+              fontSize: '0.9em',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1,
+            }}
+          >
+            {tileName}
+          </Box>
+        </Box>
+        
+        {/* Transaction subtitle/contract name */}
+        {transactionSubtitle && (
+          <Box sx={{ width: '100%', mb: 0.1 }}>
+            {tx.type === 'deployment' && deployedContract ? (
+              <Button
+                onClick={handleContractExecute}
+                size="small"
+                variant="contained"
+                startIcon={<PlayArrowIcon />}
+                sx={{
+                  backgroundColor: '#B05823',
+                  fontSize: '0.7rem',
+                  py: 0.2,
+                  px: 0.6,
+                  minHeight: 'auto',
+                  width: '100%',
+                  mt: -0.3,
+                  '&:hover': {
+                    backgroundColor: '#8B4513',
+                  },
+                }}
+              >
+                {deployedContract.name}
+              </Button>
+            ) : (
+              <Box
+                sx={{
+                  fontSize: '0.8em',
+                  fontWeight: 600,
+                  color: '#444',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: '100%',
+                }}
+              >
+                {transactionSubtitle}
+              </Box>
+            )}
+          </Box>
+        )}
+      </Box>
+
+      {/* Bottom section: gas and timestamp */}
+      <Box sx={{ width: '100%', mt: 0.3 }}>
+        <Box sx={{ color: '#666', fontSize: '0.7em', mb: 0.2 }}>
+          Gas: {tx.gasUsed?.toString?.() ?? '-'}
+        </Box>
         <Box
-          sx={{
-            fontWeight: 700,
-            fontSize: '1em',
+          sx={{ 
+            color: '#888', 
+            fontSize: '0.6em', 
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            flex: 1,
+            lineHeight: 1.1 
           }}
         >
-          {tileName}
+          {tx.timestamp ? new Date(tx.timestamp).toLocaleString() : ''}
         </Box>
-      </Box>
-      {/* Gas line */}
-      <Box sx={{ color: '#666', fontSize: '0.85em', mb: '9px', mt: '-11px' }}>
-        Gas: {tx.gasUsed?.toString?.() ?? '-'}
-      </Box>
-      {/* UTC timestamp */}
-      <Box
-        sx={{ color: '#666', fontSize: '0.6545em', wordBreak: 'break-all', lineHeight: 1.1, mt: '-11px' }}
-      >
-        {tx.timestamp ? new Date(tx.timestamp).toISOString() : ''}
       </Box>
     </Box>
   );
@@ -120,6 +229,8 @@ export default function TransactionSliderBar({
   getTransactionStatusIcon,
   onTileClick,
   selectedTxId,
+  deployedContracts,
+  onContractExecute,
 }: TransactionSliderBarProps) {
   const barRef = useRef<HTMLDivElement>(null);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -128,6 +239,7 @@ export default function TransactionSliderBar({
   const dragStartX = useRef(0);
   const scrollStart = useRef(0);
   const [isInitialized, setIsInitialized] = useState(false);
+  const hasMoved = useRef(false);
 
   // Calculate visible range with virtualization
   const { visibleStart, visibleEnd, totalWidth, tilesPerPage } = useMemo(() => {
@@ -200,24 +312,71 @@ export default function TransactionSliderBar({
 
   // Drag/touch scroll handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Ensure mouse events work regardless of touch state
     setIsDragging(true);
     dragStartX.current = e.clientX;
     scrollStart.current = scrollLeft;
+    hasMoved.current = false; // Reset movement tracking
     document.body.style.cursor = 'grabbing';
     e.preventDefault();
+    e.stopPropagation();
   }, [scrollLeft]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     
+    e.preventDefault();
+    e.stopPropagation();
+    
     const dx = e.clientX - dragStartX.current;
+    
+    // Track if mouse has moved significantly (more than 3 pixels)
+    if (Math.abs(dx) > 3) {
+      hasMoved.current = true;
+    }
+    
     const newScrollLeft = Math.max(0, Math.min(totalWidth - containerWidth, scrollStart.current - dx));
     setScrollLeft(newScrollLeft);
   }, [isDragging, totalWidth, containerWidth]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: MouseEvent) => {
     setIsDragging(false);
     document.body.style.cursor = '';
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  // Function to check if click should be prevented due to dragging
+  const shouldPreventClick = useCallback(() => {
+    return hasMoved.current;
+  }, []);
+
+  // Touch handlers for trackpad gestures (native events to avoid passive listener issues)
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 1) {
+      // Only handle touch if not already dragging (prevents conflict with mouse)
+      if (!isDragging) {
+        setIsDragging(true);
+        dragStartX.current = e.touches[0].clientX;
+        scrollStart.current = scrollLeft;
+      }
+      e.preventDefault();
+    }
+  }, [scrollLeft, isDragging]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const dx = e.touches[0].clientX - dragStartX.current;
+    const newScrollLeft = Math.max(0, Math.min(totalWidth - containerWidth, scrollStart.current - dx));
+    setScrollLeft(newScrollLeft);
+  }, [isDragging, totalWidth, containerWidth]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
   }, []);
 
   useEffect(() => {
@@ -243,18 +402,36 @@ export default function TransactionSliderBar({
     }
   }, [tilesPerPage, totalWidth, containerWidth]);
 
-  // Wheel scroll handler
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    // Check if we can actually scroll before preventing default
+  // Wheel scroll handler (native event to avoid passive listener issues)
+  const handleWheel = useCallback((e: WheelEvent) => {
+    // Always prevent default to stop browser navigation on macOS
+    e.preventDefault();
+    e.stopPropagation();
+    
     const delta = e.deltaX || e.deltaY;
     const newScrollLeft = Math.max(0, Math.min(totalWidth - containerWidth, scrollLeft + delta));
     
-    // Only prevent default if we're actually going to scroll
-    if (newScrollLeft !== scrollLeft) {
-      e.preventDefault();
-      setScrollLeft(newScrollLeft);
-    }
+    // Update scroll position
+    setScrollLeft(newScrollLeft);
   }, [totalWidth, containerWidth, scrollLeft]);
+
+  // Setup native event listeners to avoid passive listener issues
+  useEffect(() => {
+    const element = barRef.current;
+    if (!element) return;
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: false });
+    element.addEventListener('touchmove', handleTouchMove, { passive: false });
+    element.addEventListener('touchend', handleTouchEnd, { passive: false });
+    element.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+      element.removeEventListener('touchend', handleTouchEnd);
+      element.removeEventListener('wheel', handleWheel);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel]);
 
   const canScrollLeft = scrollLeft > 0;
   const canScrollRight = scrollLeft < totalWidth - containerWidth;
@@ -270,7 +447,7 @@ export default function TransactionSliderBar({
         bgcolor: '#fff',
         borderTop: '2px solid #B05823',
         boxShadow: '0 -2px 8px rgba(0,0,0,0.08)',
-        height: `${BAR_HEIGHT}px`,
+        height: `${BAR_HEIGHT + 40}px`, // Container height for compact tiles
         display: 'flex',
         alignItems: 'center',
         px: 2,
@@ -285,19 +462,18 @@ export default function TransactionSliderBar({
         <ArrowBackIosIcon />
       </IconButton>
       
-      <Box
-        ref={barRef}
-        sx={{
-          flex: 1,
-          height: `${BAR_HEIGHT - 16}px`,
-          cursor: isDragging ? 'grabbing' : 'grab',
-          userSelect: 'none',
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-        onMouseDown={handleMouseDown}
-        onWheel={handleWheel}
-      >
+              <Box
+          ref={barRef}
+          sx={{
+            flex: 1,
+            height: `${BAR_HEIGHT + 24}px`, // Scroll area height for compact tiles
+            cursor: isDragging ? 'grabbing' : 'grab',
+            userSelect: 'none',
+            overflow: 'hidden',
+            position: 'relative',
+          }}
+          onMouseDown={handleMouseDown}
+        >
         {/* Virtual scrolling container */}
         <Box
           sx={{
@@ -331,6 +507,9 @@ export default function TransactionSliderBar({
                   getTransactionTypeIcon={getTransactionTypeIcon}
                   getTransactionStatusIcon={getTransactionStatusIcon}
                   onTileClick={onTileClick}
+                  deployedContracts={deployedContracts}
+                  onContractExecute={onContractExecute}
+                  shouldPreventClick={shouldPreventClick}
                 />
               </Box>
             );
