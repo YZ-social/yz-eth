@@ -24,16 +24,16 @@ YZ-ETH is an educational and development tool that simulates a complete Ethereum
 ## ✨ Key Features
 
 ### 🔧 **Smart Contract Development**
-- **Code Editor**: Syntax-highlighted Solidity editor with auto-completion
+- **Code Editor**: Syntax-highlighted Solidity editor with auto-completion and persistent code state
 - **Real-time Compilation**: Instant feedback on compilation errors
 - **Multiple Contract Support**: Deploy and manage multiple contracts simultaneously
-- **Built-in Examples**: Pre-loaded contract templates for learning
+- **Built-in Examples**: Pre-loaded contract templates for learning (Basic, Data Structures, OOP, Tokens, Events)
 
 ### ⚡ **Blockchain Simulation**
 - **Complete EVM Environment**: Full Ethereum Virtual Machine compatibility
 - **Block Management**: Real blockchain block structure with transactions
-- **Gas Tracking**: Accurate gas usage calculation and reporting
-- **Transaction History**: Complete audit trail of all operations
+- **Gas Tracking**: Accurate gas usage calculation and reporting with transaction numbers
+- **Transaction History**: Complete audit trail with interactive transaction tiles
 
 ### 💰 **Account Management**
 - **Multi-account Support**: Create and manage multiple Ethereum accounts
@@ -42,16 +42,18 @@ YZ-ETH is an educational and development tool that simulates a complete Ethereum
 - **Private Key Management**: Secure key generation and storage
 
 ### 🔄 **Contract Interaction**
-- **Function Execution**: Call any contract function with custom parameters
-- **Return Value Display**: View function outputs and transaction results
-- **Event Logging**: Monitor contract events and logs
-- **ABI Detection**: Automatic contract interface recognition
+- **Function Execution**: Call any contract function with custom parameters via modal dialogs
+- **Return Value Display**: View function outputs and transaction results with copy functionality
+- **Event Logging**: Monitor contract events and logs within transaction details
+- **ABI Detection**: Automatic contract interface recognition with function signatures
 
 ### 🎨 **Modern User Interface**
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Material-UI Components**: Clean, professional interface
-- **Real-time Updates**: Live blockchain state monitoring
-- **Intuitive Navigation**: Easy-to-use dashboard and code editor
+- **Material-UI Components**: Clean, professional interface with consistent styling
+- **Real-time Updates**: Live blockchain state monitoring via transaction slider bar
+- **Intuitive Navigation**: Streamlined two-tab interface (Code Editor + Accounts)
+- **Interactive Transaction Tiles**: Drag-to-scroll transaction history with click-for-details
+- **Persistent State**: Code editor content persists across tab switches
 
 ## 🚀 Quick Start
 
@@ -119,30 +121,43 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ### 1. **Writing Smart Contracts**
 
-1. Navigate to the **Code Editor** tab
+1. Open the **Code Editor** (default landing page)
 2. Write your Solidity code or select from built-in examples
 3. Click **"Deploy Only"** to deploy without execution
 4. Click **"Deploy & Run"** to deploy and execute the main function
+5. View compilation results and deployment status in the output panel
 
-### 2. **Interacting with Contracts**
+### 2. **Monitoring Blockchain Activity**
 
-1. Go to the **Dashboard** tab
-2. View deployed contracts in the "Deployed Contracts" section
-3. Click **"Execute"** on any contract to open the function dialog
-4. Select a function, provide parameters (if needed), and execute
+- **Transaction Slider Bar**: View all transactions in real-time at the bottom of the screen
+- **Current Block Info**: Monitor block state in the sidebar
+- **Transaction Details**: Click any transaction tile to view detailed information
+- **Event Logs**: View contract events within each transaction's details
 
-### 3. **Managing Accounts**
+### 3. **Interacting with Contracts**
+
+1. After deploying a contract, find it in the **Transaction Slider Bar**
+2. Click the **"Execute"** button on deployment tiles
+3. Select a function from the dropdown menu
+4. Provide parameters (if needed) and execute
+5. View results in the transaction details modal
+
+### 4. **Managing Accounts**
 
 1. Visit the **Accounts** tab
 2. View existing accounts and their ETH balances
 3. Click **"Create Account"** to generate new accounts
 4. Use the **Transfer** feature to send ETH between accounts
 
-### 4. **Monitoring Activity**
+### 5. **Transaction Management**
 
-- **Dashboard**: View current block information and transaction history
-- **Transaction Panel**: Monitor all blockchain transactions in real-time
-- **Logs**: Review contract events and execution logs
+- **Transaction Tiles**: Each transaction is displayed as a tile with:
+  - Transaction number and gas usage
+  - Transaction type (deployment, execution, transfer)
+  - Status indicators (success/failure)
+  - Contract execution buttons for deployed contracts
+- **Drag Navigation**: Drag the transaction bar to scroll through transaction history
+- **Click for Details**: Click any tile to view comprehensive transaction information
 
 ## 🏗️ Architecture Overview
 
@@ -150,34 +165,45 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     YZ-ETH Architecture                     │
+│                     YZ-ETH Architecture v0.3.4             │
 ├─────────────────────┬─────────────────────┬─────────────────┤
 │   Frontend (React)  │   Core Engine       │   Blockchain    │
 │                     │                     │                 │
 │ ┌─────────────────┐ │ ┌─────────────────┐ │ ┌─────────────┐ │
 │ │   App.tsx       │ │ │ SolidityExecutor│ │ │ EthereumJS  │ │
 │ │   - Navigation  │ │ │ - Compilation   │ │ │ VM & EVM    │ │
-│ │   - Theme       │ │ │ - Deployment    │ │ │             │ │
-│ └─────────────────┘ │ │ - Execution     │ │ │             │ │
-│                     │ └─────────────────┘ │ │             │ │
-│ ┌─────────────────┐ │                     │ │             │ │
-│ │  CodeEditor     │ │ ┌─────────────────┐ │ │             │ │
-│ │  - Ace Editor   │ │ │  BlockManager   │ │ │             │ │
-│ │  - Examples     │ │ │  - Transactions │ │ │             │ │
-│ │  - Compilation  │ │ │  - Accounts     │ │ │             │ │
-│ └─────────────────┘ │ │  - Block State  │ │ │             │ │
-│                     │ └─────────────────┘ │ └─────────────┘ │
-│ ┌─────────────────┐ │                     │                 │
-│ │ BlockchainView  │ │ ┌─────────────────┐ │ ┌─────────────┐ │
-│ │ - Dashboard     │ │ │   Solc Worker   │ │ │  Web Worker │ │
-│ │ - Contracts     │ │ │ - Browser Comp. │ │ │  (Isolated) │ │
-│ │ - Transactions  │ │ │ - Async Build   │ │ │             │ │
+│ │   - State Mgmt  │ │ │ - Deployment    │ │ │             │ │
+│ │   - Modals      │ │ │ - Execution     │ │ │             │ │
+│ └─────────────────┘ │ └─────────────────┘ │ │             │ │
+│                     │                     │ │             │ │
+│ ┌─────────────────┐ │ ┌─────────────────┐ │ │             │ │
+│ │  CodeEditor     │ │ │  BlockManager   │ │ │             │ │
+│ │  - Ace Editor   │ │ │  - Transactions │ │ │             │ │
+│ │  - Examples     │ │ │  - Accounts     │ │ │             │ │
+│ │  - Compilation  │ │ │  - Block State  │ │ │             │ │
+│ │  - Persist Code │ │ │  - Event Logs   │ │ │             │ │
 │ └─────────────────┘ │ └─────────────────┘ │ └─────────────┘ │
+│                     │                     │                 │
+│ ┌─────────────────┐ │ ┌─────────────────┐ │ ┌─────────────┐ │
+│ │TransactionSlider│ │ │   Solc Worker   │ │ │  Web Worker │ │
+│ │ - Tile Display  │ │ │ - Browser Comp. │ │ │  (Isolated) │ │
+│ │ - Drag Scroll   │ │ │ - Async Build   │ │ │             │ │
+│ │ - Click Details │ │ │ - Error Handle  │ │ │             │ │
+│ │ - Contract Exec │ │ └─────────────────┘ │ └─────────────┘ │
+│ └─────────────────┘ │                     │                 │
 │                     │                     │                 │
 │ ┌─────────────────┐ │                     │                 │
 │ │AccountManagement│ │                     │                 │
 │ │ - ETH Balances  │ │                     │                 │
 │ │ - Transfers     │ │                     │                 │
+│ │ - Account Mgmt  │ │                     │                 │
+│ └─────────────────┘ │                     │                 │
+│                     │                     │                 │
+│ ┌─────────────────┐ │                     │                 │
+│ │Transaction Modal│ │                     │                 │
+│ │ - Full Details  │ │                     │                 │
+│ │ - Event Logs    │ │                     │                 │
+│ │ - Return Values │ │                     │                 │
 │ └─────────────────┘ │                     │                 │
 └─────────────────────┴─────────────────────┴─────────────────┘
 ```
@@ -201,22 +227,26 @@ Handles Solidity compilation and contract execution:
 - **Integration**: Works with BlockManager for transaction-based execution
 
 #### **React Components** (`public/components/`)
-- **`App.tsx`**: Main application shell with navigation and theming
-- **`CodeEditor.tsx`**: Solidity code editor with syntax highlighting and examples
-- **`BlockchainView.tsx`**: Dashboard showing blocks, transactions, and contract interaction
+- **`App.tsx`**: Main application shell with navigation, state management, and modal coordination
+- **`CodeEditor.tsx`**: Solidity code editor with syntax highlighting, examples, and persistent code state
 - **`AccountManagement.tsx`**: Account creation, balance viewing, and ETH transfers
+- **`TransactionSliderBar.tsx`**: Interactive transaction tile display with drag navigation and contract execution
+- **`TransactionDetailsModal.tsx`**: Comprehensive transaction details with event logs and return values
 - **`TransferModal.tsx`**: Modal for ETH transfers between accounts
 
 ### Data Flow
 
 ```
-1. User writes Solidity code in CodeEditor
-2. SolidityExecutor compiles code using Solc worker
+1. User writes Solidity code in CodeEditor (code persists across tab switches)
+2. SolidityExecutor compiles code using Solc worker in background
 3. Compiled bytecode is deployed via BlockManager
 4. BlockManager creates transaction and executes on EthereumJS VM
-5. Transaction results are stored in block state
-6. UI components display updated blockchain state
-7. User can interact with deployed contracts via BlockchainView
+5. Transaction results are stored in block state with event logs
+6. TransactionSliderBar displays new transaction tile with real-time updates
+7. User can click transaction tiles to view detailed information
+8. Contract deployment tiles show "Execute" button for function calls
+9. User can interact with deployed contracts via modal dialogs
+10. All transaction details, event logs, and return values are accessible
 ```
 
 ## 🛠️ Technology Stack
@@ -258,6 +288,7 @@ Handles Solidity compilation and contract execution:
 | `npm run lint` | Run code linting |
 | `npm run lint:fix` | Fix linting issues automatically |
 | `npm run clean` | Clean build artifacts |
+| `npm run deploy` | Deploy to GitHub Pages |
 
 ## 📁 Project Structure
 
@@ -275,10 +306,11 @@ yz-eth/
 │
 ├── public/                      # Web application
 │   ├── components/              # Web app React components
-│   │   ├── App.tsx              # Main application shell
-│   │   ├── CodeEditor.tsx       # Solidity code editor
-│   │   ├── BlockchainView.tsx   # Enhanced blockchain dashboard
+│   │   ├── App.tsx              # Main application shell with navigation
+│   │   ├── CodeEditor.tsx       # Solidity code editor with persistence
 │   │   ├── AccountManagement.tsx # Account management interface
+│   │   ├── TransactionSliderBar.tsx # Interactive transaction tiles
+│   │   ├── TransactionDetailsModal.tsx # Transaction details modal
 │   │   ├── TransferModal.tsx    # ETH transfer modal
 │   │   └── index.ts             # Component exports
 │   ├── app.tsx                  # Application entry point
@@ -294,15 +326,20 @@ yz-eth/
 │   ├── solc-local.spec.ts       # Local Solc tests
 │   └── web-worker-solc.spec.ts  # Web worker tests
 │
+├── .github/                     # GitHub configuration
+│   └── workflows/               # GitHub Actions
+│       └── deploy.yml           # Automatic deployment workflow
+│
 ├── dist/                        # Build output
 │   ├── cjs/                     # CommonJS build
 │   ├── esm/                     # ES modules build
-│   └── web/                     # Web application build
+│   └── web/                     # Web application build (deployed to GitHub Pages)
 │
 ├── package.json                 # Project configuration
 ├── tsconfig.json                # TypeScript configuration
-├── vite.config.ts               # Vite configuration
+├── vite.config.ts               # Vite configuration with GitHub Pages support
 ├── vitest.config.ts             # Test configuration
+├── DEPLOYMENT.md                # Deployment guide
 └── README.md                    # This file
 ```
 
@@ -342,7 +379,7 @@ Advanced data structures:
 
 ## 🔧 Development Status
 
-**Current Version**: `v0.2.6` (Pre-release)
+**Current Version**: `v0.3.4` (Stable)
 
 ### ✅ **Implemented Features**
 - ✅ Solidity compilation and execution
@@ -351,13 +388,21 @@ Advanced data structures:
 - ✅ Real-time blockchain simulation
 - ✅ Modern React UI with Material-UI
 - ✅ Multiple contract support
-- ✅ Transaction history and logging
-- ✅ Built-in contract examples
+- ✅ Interactive transaction tiles with drag navigation
+- ✅ Transaction details modal with event logs
+- ✅ Persistent code editor state
+- ✅ GitHub Pages deployment
+- ✅ Built-in contract examples (Basic, Data Structures, OOP, Tokens, Events)
 
-### 🚧 **Known Issues**
-- Some execution tests failing (contract function execution)
-- Error handling could be improved
-- Performance optimization needed for large contracts
+### 🚧 **Recent Improvements (v0.3.x)**
+- ✅ Removed Dashboard panel for streamlined UI
+- ✅ Added transaction slider bar with real-time updates
+- ✅ Implemented drag-to-scroll transaction navigation
+- ✅ Added transaction numbering and gas tracking
+- ✅ Event logs moved to transaction details modal
+- ✅ Fixed code persistence across tab switches
+- ✅ Unified dialog styling across the application
+- ✅ Added GitHub Pages deployment automation
 
 ### 🎯 **Planned Features**
 - Enhanced debugging tools
@@ -365,6 +410,7 @@ Advanced data structures:
 - Export/import functionality
 - Advanced gas optimization analysis
 - Multi-file Solidity project support
+- Custom domain deployment
 
 ## 🤝 Contributing
 
