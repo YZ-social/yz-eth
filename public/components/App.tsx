@@ -87,6 +87,8 @@ export default function App() {
   const [functionArgs, setFunctionArgs] = useState<string>('');
   const [executionOutput, setExecutionOutput] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState(false);
+  // Code editor state - lifted up to persist across tab switches
+  const [editorCode, setEditorCode] = useState('');
 
   useEffect(() => {
     const init = async () => {
@@ -527,7 +529,7 @@ export default function App() {
       </Drawer>
 
       <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 8, pb: 12 }}>
-        {activeSection === 'code' && <CodeEditor executor={executor} blockManager={blockManager} />}
+        {activeSection === 'code' && <CodeEditor executor={executor} blockManager={blockManager} code={editorCode} setCode={setEditorCode} />}
         {activeSection === 'accounts' && <AccountManagement blockManager={blockManager} />}
       </Box>
       <TransactionSliderBar

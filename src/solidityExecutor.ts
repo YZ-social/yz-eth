@@ -464,7 +464,6 @@ export class SolidityExecutor {
   // New method to get contract info by address
   public getContractByAddress(address: string): { name: string; abi: any[] } | null {
     const result = this.contractAbiMap.get(address.toLowerCase())
-    console.log('🔍 Looking up contract by address:', { address, found: !!result })
     return result || null
   }
 

@@ -32,6 +32,7 @@ const OVERSCAN = 3; // Number of tiles to render outside visible area
 // Memoized transaction tile component
 const TransactionTile = React.memo(({ 
   tx, 
+  txNumber,
   isSelected, 
   getTransactionTypeIcon, 
   getTransactionStatusIcon, 
@@ -41,6 +42,7 @@ const TransactionTile = React.memo(({
   shouldPreventClick
 }: {
   tx: Transaction;
+  txNumber: number;
   isSelected: boolean;
   getTransactionTypeIcon: (type: string, tx?: Transaction) => React.ReactNode;
   getTransactionStatusIcon: (status: string) => React.ReactNode;
@@ -202,7 +204,7 @@ const TransactionTile = React.memo(({
       {/* Bottom section: gas and timestamp */}
       <Box sx={{ width: '100%', mt: 0.3 }}>
         <Box sx={{ color: '#666', fontSize: '0.7em', mb: 0.2 }}>
-          Gas: {tx.gasUsed?.toString?.() ?? '-'}
+          TX: {txNumber}, Gas: {tx.gasUsed?.toString?.() ?? '-'}
         </Box>
         <Box
           sx={{ 
@@ -503,6 +505,7 @@ export default function TransactionSliderBar({
               >
                 <TransactionTile
                   tx={tx}
+                  txNumber={actualIndex + 1}
                   isSelected={selectedTxId === tx.id}
                   getTransactionTypeIcon={getTransactionTypeIcon}
                   getTransactionStatusIcon={getTransactionStatusIcon}

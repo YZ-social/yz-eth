@@ -27,6 +27,8 @@ import { SolidityExecutor } from '../../src/solidityExecutor'
 interface CodeEditorProps {
   executor: SolidityExecutor
   blockManager: BlockManager
+  code: string
+  setCode: (code: string) => void
 }
 
 const exampleContracts = {
@@ -881,8 +883,7 @@ contract TokenEvents {
   ],
 }
 
-export default function CodeEditor({ executor, blockManager }: CodeEditorProps) {
-  const [code, setCode] = useState('')
+export default function CodeEditor({ executor, blockManager, code, setCode }: CodeEditorProps) {
   const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
   const editorRef = useRef<any>(null)
