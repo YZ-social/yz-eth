@@ -13,13 +13,13 @@
     "simulator",
     "yz"
   ],
-  "homepage": "https://davidasmith.github.io/yz-eth/",
+  "homepage": "https://yz-social.github.io/yz-eth/",
   "bugs": {
-    "url": "https://github.com/davidasmith/yz-eth/issues"
+    "url": "https://github.com/YZ-social/yz-eth/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/davidasmith/yz-eth.git"
+    "url": "https://github.com/YZ-social/yz-eth.git"
   },
   "license": "MPL-2.0",
   "author": "EthereumJS Team",

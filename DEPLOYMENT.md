@@ -91,4 +91,4 @@ To use a custom domain:
 
 ## Live Demo
 
-The application is deployed at: https://davidasmith.github.io/yz-eth/ 
+The application is deployed at: https://yz-social.github.io/yz-eth/ 

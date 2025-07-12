@@ -4,11 +4,11 @@
 
 # YZ ETH Blockchain Simulator
 
-[![Version](https://img.shields.io/badge/version-0.3.5-blue.svg)](https://github.com/davidasmith/yz-eth)
+[![Version](https://img.shields.io/badge/version-0.3.5-blue.svg)](https://github.com/YZ-social/yz-eth)
 [![License](https://img.shields.io/badge/license-MPL--2.0-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json)
-[![Deploy](https://github.com/davidasmith/yz-eth/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/davidasmith/yz-eth/actions)
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://davidasmith.github.io/yz-eth/)
+[![Deploy](https://github.com/YZ-social/yz-eth/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/YZ-social/yz-eth/actions)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://yz-social.github.io/yz-eth/)
 
 A **web-based Solidity execution environment** using EthereumJS VM that provides a complete blockchain simulation experience. YZ-ETH allows developers to write, compile, deploy, and interact with smart contracts in a fully simulated Ethereum environment—all running locally in your browser.
 
@@ -59,7 +59,7 @@ YZ-ETH is an educational and development tool that simulates a complete Ethereum
 
 ### 🌐 **Try it Online**
 
-**Live Demo**: [https://davidasmith.github.io/yz-eth/](https://davidasmith.github.io/yz-eth/)
+**Live Demo**: [https://yz-social.github.io/yz-eth/](https://yz-social.github.io/yz-eth/)
 
 No installation required! The application runs entirely in your browser.
 
@@ -74,7 +74,7 @@ No installation required! The application runs entirely in your browser.
 
 ```bash
 # Clone the repository
-git clone https://github.com/davidasmith/yz-eth.git
+git clone https://github.com/YZ-social/yz-eth.git
 cd yz-eth
 
 # Install dependencies
