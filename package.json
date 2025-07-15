@@ -45,7 +45,7 @@
     "biome:fix": "npx @biomejs/biome check --write",
     "build": "npm run build:lib && npm run build:web",
     "build:lib": "tsc && tsc -p tsconfig.prod.esm.json && tsc -p tsconfig.prod.cjs.json",
-    "build:web": "vite build",
+    "build:web": "vite build && cp public/solc-worker-bundle.js dist/web/",
     "build:worker": "mkdir -p public && npx browserify -t babelify ./src/solc-worker.js > ./public/solc-worker-bundle.js",
     "clean": "rm -rf dist",
     "coverage": "DEBUG=ethjs npx vitest run -c vitest.config.coverage.ts",

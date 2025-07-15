@@ -9,7 +9,6 @@ export default defineConfig({
   build: {
     outDir: '../dist/web',
     assetsDir: 'assets',
-    copyPublicDir: true,
     rollupOptions: {
       // No external dependencies for web build
     },
