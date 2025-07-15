@@ -30,8 +30,16 @@ class SolcWorker {
 
   private initWorker() {
     try {
-      // Use the real bundled solc worker
-      this.worker = new Worker('/solc-worker-bundle.js')
+      // Use the real bundled solc worker - try multiple possible paths for GitHub Pages compatibility
+      let workerPath = '/solc-worker-bundle.js'
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname
+        if (currentPath.includes('/yz-eth/')) {
+          workerPath = '/yz-eth/solc-worker-bundle.js'
+        }
+      }
+      
+      this.worker = new Worker(workerPath)
 
       this.worker.onmessage = (event) => {
         const { type, success, output, version, error } = event.data
@@ -134,7 +142,22 @@ async function getSolc(): Promise<any> {
   // Browser environment fallback - use web-solc
   try {
     const webSolc = await import('@usecannon/web-solc')
-    return webSolc.default || webSolc
+    let solcInstance = webSolc.default || webSolc
+    
+    // If it's a function, call it to get the actual compiler
+    if (typeof solcInstance === 'function') {
+      solcInstance = solcInstance()
+    }
+    
+    // Create a wrapper that matches the expected API
+    return {
+      compile: (input: string) => {
+        // web-solc expects and returns objects, not strings
+        const inputObj = JSON.parse(input)
+        const result = solcInstance.compile(inputObj)
+        return JSON.stringify(result)
+      }
+    }
   } catch (error) {
     console.error('Failed to load web-solc:', error)
     throw new Error('Failed to load Solidity compiler')
