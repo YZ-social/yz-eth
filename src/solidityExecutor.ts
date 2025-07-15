@@ -139,89 +139,9 @@ async function getSolc(): Promise<any> {
     }
   }
 
-  // Browser environment fallback - use web-solc
-  try {
-    const webSolc = await import('@usecannon/web-solc')
-    console.log('Loading web-solc fallback...')
-    
-    // Try different ways to get the compiler instance
-    let solcInstance: any = null
-    
-    // Method 1: Check if it's a direct function
-    if (typeof webSolc.default === 'function') {
-      solcInstance = webSolc.default
-    } else if (typeof webSolc === 'function') {
-      solcInstance = webSolc
-    }
-    
-    // Method 2: Check if it has a compile method directly
-    else if (webSolc.default && typeof (webSolc.default as any).compile === 'function') {
-      solcInstance = webSolc.default
-    } else if ((webSolc as any).compile && typeof (webSolc as any).compile === 'function') {
-      solcInstance = webSolc
-    }
-    
-    // Method 3: Check if it needs to be called to get compiler
-    else if (webSolc.default && typeof webSolc.default === 'object') {
-      // Try to find a method that returns a compiler
-      const defaultObj = webSolc.default as any
-      for (const key of Object.keys(defaultObj)) {
-        if (typeof defaultObj[key] === 'function') {
-          try {
-            const result = defaultObj[key]()
-            if (result && typeof result.compile === 'function') {
-              solcInstance = result
-              break
-            }
-          } catch (e) {
-            // Continue trying other methods
-          }
-        }
-      }
-    }
-    
-    // If we still don't have a compiler, throw an error
-    if (!solcInstance) {
-      throw new Error('Could not find compile method in web-solc')
-    }
-    
-    // Create a wrapper that matches the expected API
-    return {
-      compile: (input: string) => {
-        try {
-          let result
-          
-          // If solcInstance is a function, call it to get the actual compiler
-          if (typeof solcInstance === 'function') {
-            const compiler = solcInstance()
-            if (compiler && typeof compiler.compile === 'function') {
-              // web-solc expects and returns objects, not strings
-              const inputObj = JSON.parse(input)
-              result = compiler.compile(inputObj)
-            } else {
-              throw new Error('Function call did not return a compiler with compile method')
-            }
-          } else if (typeof solcInstance.compile === 'function') {
-            // Direct compile method
-            const inputObj = JSON.parse(input)
-            result = solcInstance.compile(inputObj)
-          } else {
-            throw new Error('No valid compile method found')
-          }
-          
-          // Return result as string
-          return typeof result === 'string' ? result : JSON.stringify(result)
-        } catch (error) {
-          console.error('web-solc compilation error:', error)
-          throw error
-        }
-      }
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error('Failed to load web-solc:', errorMessage)
-    throw new Error(`Failed to load Solidity compiler: ${errorMessage}`)
-  }
+  // Browser environment fallback - no web-solc dependency needed
+  console.error('Web worker failed to load. Please check your internet connection and refresh the page.')
+  throw new Error('Solidity compiler web worker unavailable. Please refresh the page to retry.')
 }
 
 export class SolidityExecutor {
