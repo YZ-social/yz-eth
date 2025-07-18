@@ -4,6 +4,8 @@ import {
   SwapHoriz as SwapHorizIcon,
   PlayArrow as PlayArrowIcon,
   Close as CloseIcon,
+  MenuBook as MenuBookIcon,
+  ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material'
 import {
   AppBar,
@@ -31,6 +33,7 @@ import {
   TextField,
   Chip,
   CircularProgress,
+  Menu,
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { BlockManager } from '../../src/blockManager'
@@ -41,6 +44,859 @@ import TransactionSliderBar from './TransactionSliderBar';
 import { Transaction } from '../../src/blockManager';
 
 const drawerWidth = 240
+
+// Example contracts data - moved from CodeEditor.tsx
+const exampleContracts = {
+  Basics: [
+    {
+      name: 'Simple',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Simple {
+    function main() public pure returns (string memory) {
+        return "Hello from EthereumJS!";
+    }
+}`,
+    },
+    {
+      name: 'Counter',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Counter {
+    uint256 private count;
+    
+    function increment() public {
+        count++;
+    }
+    
+    function getCount() public view returns (uint256) {
+        return count;
+    }
+    
+    function main() public {
+        increment();
+        increment();
+        increment();
+    }
+}`,
+    },
+    {
+      name: 'Calculator',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Calculator {
+    function add(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+    
+    function multiply(uint256 a, uint256 b) public pure returns (uint256) {
+        return a * b;
+    }
+    
+    function main() public pure returns (uint256) {
+        return add(5, 3) + multiply(2, 4);
+    }
+}`,
+    },
+    {
+      name: 'Storage',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Storage {
+    uint256 private storedData;
+    
+    function set(uint256 x) public {
+        storedData = x;
+    }
+    
+    function get() public view returns (uint256) {
+        return storedData;
+    }
+    
+    function main() public {
+        set(42);
+    }
+}`,
+    },
+  ],
+  'Data Structures': [
+    {
+      name: 'Arrays',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ArrayOperations {
+    uint256[] private numbers;
+    
+    function addNumber(uint256 num) public {
+        numbers.push(num);
+    }
+    
+    function getNumbers() public view returns (uint256[] memory) {
+        return numbers;
+    }
+    
+    function sum() public view returns (uint256) {
+        uint256 total = 0;
+        for (uint256 i = 0; i < numbers.length; i++) {
+            total += numbers[i];
+        }
+        return total;
+    }
+    
+    function main() public {
+        addNumber(10);
+        addNumber(20);
+        addNumber(30);
+    }
+}`,
+    },
+    {
+      name: 'Mappings',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MappingExample {
+    mapping(address => uint256) private balances;
+    mapping(address => string) private names;
+    
+    function setBalance(address user, uint256 amount) public {
+        balances[user] = amount;
+    }
+    
+    function setName(address user, string memory name) public {
+        names[user] = name;
+    }
+    
+    function getBalance(address user) public view returns (uint256) {
+        return balances[user];
+    }
+    
+    function getName(address user) public view returns (string memory) {
+        return names[user];
+    }
+    
+    function main() public {
+        address user = address(0x123);
+        setBalance(user, 1000);
+        setName(user, "Alice");
+    }
+}`,
+    },
+    {
+      name: 'Structs',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract StructExample {
+    struct Person {
+        string name;
+        uint256 age;
+        bool isActive;
+    }
+    
+    Person[] private people;
+    
+    function addPerson(string memory name, uint256 age) public {
+        people.push(Person(name, age, true));
+    }
+    
+    function getPerson(uint256 index) public view returns (string memory, uint256, bool) {
+        require(index < people.length, "Person not found");
+        Person memory person = people[index];
+        return (person.name, person.age, person.isActive);
+    }
+    
+    function getPersonCount() public view returns (uint256) {
+        return people.length;
+    }
+    
+    function main() public {
+        addPerson("Alice", 25);
+        addPerson("Bob", 30);
+        addPerson("Charlie", 35);
+    }
+}`,
+    },
+    {
+      name: 'Enums',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract EnumExample {
+    enum Status { Pending, Approved, Rejected, Cancelled }
+    enum Priority { Low, Medium, High, Critical }
+    
+    struct Task {
+        string description;
+        Status status;
+        Priority priority;
+        uint256 createdAt;
+    }
+    
+    Task[] private tasks;
+    
+    function addTask(string memory description, Priority priority) public {
+        tasks.push(Task(description, Status.Pending, priority, block.timestamp));
+    }
+    
+    function updateStatus(uint256 taskId, Status newStatus) public {
+        require(taskId < tasks.length, "Task not found");
+        tasks[taskId].status = newStatus;
+    }
+    
+    function getTask(uint256 taskId) public view returns (string memory, Status, Priority, uint256) {
+        require(taskId < tasks.length, "Task not found");
+        Task memory task = tasks[taskId];
+        return (task.description, task.status, task.priority, task.createdAt);
+    }
+    
+    function getTasksByStatus(Status status) public view returns (uint256[] memory) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < tasks.length; i++) {
+            if (tasks[i].status == status) {
+                count++;
+            }
+        }
+        
+        uint256[] memory result = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < tasks.length; i++) {
+            if (tasks[i].status == status) {
+                result[index] = i;
+                index++;
+            }
+        }
+        return result;
+    }
+    
+    function main() public {
+        addTask("Complete project", Priority.High);
+        addTask("Review code", Priority.Medium);
+        addTask("Write tests", Priority.Critical);
+        updateStatus(0, Status.Approved);
+    }
+}`,
+    },
+  ],
+  'Advanced Features': [
+    {
+      name: 'Events',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract EventExample {
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+    event UserRegistered(address indexed user, string name);
+    
+    mapping(address => string) private users;
+    
+    function registerUser(string memory name) public {
+        users[msg.sender] = name;
+        emit UserRegistered(msg.sender, name);
+    }
+    
+    function transfer(address to, uint256 amount) public {
+        emit Transfer(msg.sender, to, amount);
+    }
+    
+    function getUserName(address user) public view returns (string memory) {
+        return users[user];
+    }
+    
+    function main() public {
+        registerUser("TestUser");
+        transfer(address(0x456), 100);
+    }
+}`,
+    },
+    {
+      name: 'Modifiers',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ModifierExample {
+    address private owner;
+    mapping(address => bool) private authorized;
+    
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+    
+    modifier onlyAuthorized() {
+        require(authorized[msg.sender], "Not authorized");
+        _;
+    }
+    
+    constructor() {
+        owner = msg.sender;
+        authorized[msg.sender] = true;
+    }
+    
+    function addAuthorized(address user) public onlyOwner {
+        authorized[user] = true;
+    }
+    
+    function removeAuthorized(address user) public onlyOwner {
+        authorized[user] = false;
+    }
+    
+    function authorizedFunction() public onlyAuthorized returns (string memory) {
+        return "This function is only for authorized users";
+    }
+    
+    function main() public {
+        // This will work because msg.sender is owner
+        addAuthorized(address(0x789));
+        authorizedFunction();
+    }
+}`,
+    },
+    {
+      name: 'Inheritance',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Animal {
+    string public name;
+    uint256 public age;
+    
+    constructor() {
+        name = "Unknown";
+        age = 0;
+    }
+    
+    function setName(string memory _name) public {
+        name = _name;
+    }
+    
+    function setAge(uint256 _age) public {
+        age = _age;
+    }
+    
+    function makeSound() public virtual returns (string memory) {
+        return "Some sound";
+    }
+}
+
+contract Dog is Animal {
+    constructor() {
+        setName("Buddy");
+        setAge(3);
+    }
+    
+    function makeSound() public virtual override returns (string memory) {
+        return "Woof!";
+    }
+    
+    function fetch() public returns (string memory) {
+        return "Fetching the ball!";
+    }
+}
+
+contract Cat is Animal {
+    constructor() {
+        setName("Whiskers");
+        setAge(2);
+    }
+    
+    function makeSound() public virtual override returns (string memory) {
+        return "Meow!";
+    }
+    
+    function purr() public returns (string memory) {
+        return "Purring...";
+    }
+}
+
+contract PetShop {
+    function main() public returns (string memory) {
+        Dog dog = new Dog();
+        Cat cat = new Cat();
+        
+        string memory dogSound = dog.makeSound();
+        string memory catSound = cat.makeSound();
+        
+        return string(abi.encodePacked("Dog says: ", dogSound, ", Cat says: ", catSound));
+    }
+}`,
+    },
+    {
+      name: 'Interfaces',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface ICalculator {
+    function add(uint256 a, uint256 b) external pure returns (uint256);
+    function subtract(uint256 a, uint256 b) external pure returns (uint256);
+    function multiply(uint256 a, uint256 b) external pure returns (uint256);
+    function divide(uint256 a, uint256 b) external pure returns (uint256);
+}
+
+contract AdvancedCalculator is ICalculator {
+    function add(uint256 a, uint256 b) public pure override returns (uint256) {
+        return a + b;
+    }
+    
+    function subtract(uint256 a, uint256 b) public pure override returns (uint256) {
+        require(a >= b, "Subtraction underflow");
+        return a - b;
+    }
+    
+    function multiply(uint256 a, uint256 b) public pure override returns (uint256) {
+        return a * b;
+    }
+    
+    function divide(uint256 a, uint256 b) public pure override returns (uint256) {
+        require(b > 0, "Division by zero");
+        return a / b;
+    }
+    
+    function power(uint256 base, uint256 exponent) public pure returns (uint256) {
+        uint256 result = 1;
+        for (uint256 i = 0; i < exponent; i++) {
+            result *= base;
+        }
+        return result;
+    }
+    
+    function main() public pure returns (uint256) {
+        return power(2, 8); // 2^8 = 256
+    }
+}`,
+    },
+    {
+      name: 'Library',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+library MathUtils {
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
+    }
+    
+    function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a > b ? a : b;
+    }
+    
+    function average(uint256 a, uint256 b) internal pure returns (uint256) {
+        return (a + b) / 2;
+    }
+    
+    function isEven(uint256 num) internal pure returns (bool) {
+        return num % 2 == 0;
+    }
+    
+    function factorial(uint256 n) internal pure returns (uint256) {
+        if (n <= 1) return 1;
+        uint256 result = 1;
+        for (uint256 i = 2; i <= n; i++) {
+            result *= i;
+        }
+        return result;
+    }
+}
+
+contract LibraryExample {
+    using MathUtils for uint256;
+    
+    function testMath() public pure returns (uint256, uint256, uint256, bool, uint256) {
+        uint256 a = 10;
+        uint256 b = 20;
+        
+        uint256 minVal = a.min(b);
+        uint256 maxVal = a.max(b);
+        uint256 avgVal = a.average(b);
+        bool isEvenNum = a.isEven();
+        uint256 fact = MathUtils.factorial(5);
+        
+        return (minVal, maxVal, avgVal, isEvenNum, fact);
+    }
+    
+    function main() public pure returns (uint256) {
+        return MathUtils.factorial(5); // 5! = 120
+    }
+}`,
+    },
+  ],
+  'Error Handling': [
+    {
+      name: 'Custom Errors',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ErrorHandling {
+    error InsufficientBalance(uint256 available, uint256 requested);
+    error UserNotFound(address user);
+    error InvalidAmount(uint256 amount);
+    
+    mapping(address => uint256) private balances;
+    
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+    
+    function withdraw(uint256 amount) public {
+        if (amount == 0) {
+            revert InvalidAmount(amount);
+        }
+        
+        if (balances[msg.sender] < amount) {
+            revert InsufficientBalance(balances[msg.sender], amount);
+        }
+        
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+    }
+    
+    function getBalance(address user) public view returns (uint256) {
+        if (user == address(0)) {
+            revert UserNotFound(user);
+        }
+        return balances[user];
+    }
+    
+    function main() public {
+        // This will work
+        deposit();
+        getBalance(msg.sender);
+    }
+}`,
+    },
+    {
+      name: 'Gas Optimization',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract GasOptimization {
+    // Gas efficient: packed struct
+    struct User {
+        uint32 id;
+        uint32 age;
+        uint64 balance;
+        bool isActive;
+    }
+    
+    // Gas inefficient: separate variables
+    uint256 private userId;
+    uint256 private userAge;
+    uint256 private userBalance;
+    bool private userActive;
+    
+    User[] private users;
+    
+    function addUser(uint32 id, uint32 age, uint64 balance) public {
+        users.push(User(id, age, balance, true));
+    }
+    
+    function addUserInefficient(uint256 id, uint256 age, uint256 balance) public {
+        userId = id;
+        userAge = age;
+        userBalance = balance;
+        userActive = true;
+    }
+    
+    function getUser(uint256 index) public view returns (uint32, uint32, uint64, bool) {
+        require(index < users.length, "User not found");
+        User memory user = users[index];
+        return (user.id, user.age, user.balance, user.isActive);
+    }
+    
+    function getUserCount() public view returns (uint256) {
+        return users.length;
+    }
+    
+    function main() public {
+        addUser(1, 25, 1000);
+        addUser(2, 30, 2000);
+        addUser(3, 35, 3000);
+    }
+}`,
+    },
+  ],
+  Tokens: [
+    {
+      name: 'Basic Token',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Token {
+    string public name = "MyToken";
+    string public symbol = "MTK";
+    uint8 public decimals = 18;
+    uint256 public totalSupply = 1000000 * 10**18;
+    mapping(address => uint256) public balanceOf;
+
+    constructor() {
+        balanceOf[msg.sender] = totalSupply;
+    }
+
+    function transfer(address to, uint256 amount) public returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        return true;
+    }
+}`,
+    },
+    {
+      name: 'ERC20 Token',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+contract ERC20 is IERC20 {
+    string public name = "MyERC20Token";
+    string public symbol = "MET";
+    uint8 public decimals = 18;
+    uint256 private _totalSupply = 1000000 * 10**18;
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    constructor() {
+        _balances[msg.sender] = _totalSupply;
+    }
+
+    function totalSupply() public view override returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) public view override returns (uint256) {
+        return _balances[account];
+    }
+
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        require(_balances[msg.sender] >= amount, "Insufficient balance");
+        _balances[msg.sender] -= amount;
+        _balances[recipient] += amount;
+        emit Transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function allowance(address owner, address spender) public view override returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    function approve(address spender, uint256 amount) public override returns (bool) {
+        _allowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+        require(_balances[sender] >= amount, "Insufficient balance");
+        require(_allowances[sender][msg.sender] >= amount, "Insufficient allowance");
+        _balances[sender] -= amount;
+        _balances[recipient] += amount;
+        _allowances[sender][msg.sender] -= amount;
+        emit Transfer(sender, recipient, amount);
+        return true;
+    }
+}`,
+    },
+  ],
+  Events: [
+    {
+      name: 'Event Counter',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract EventCounter {
+    uint256 private count = 0;
+    
+    // Define events
+    event CountIncremented(address indexed user, uint256 newCount, uint256 timestamp);
+    event CountReset(address indexed user, uint256 timestamp);
+    event CountSet(address indexed user, uint256 oldCount, uint256 newCount, uint256 timestamp);
+    
+    function increment() public {
+        count++;
+        // Emit event when count is incremented
+        emit CountIncremented(msg.sender, count, block.timestamp);
+    }
+    
+    function reset() public {
+        uint256 oldCount = count;
+        count = 0;
+        // Emit event when count is reset
+        emit CountReset(msg.sender, block.timestamp);
+    }
+    
+    function setCount(uint256 newCount) public {
+        uint256 oldCount = count;
+        count = newCount;
+        // Emit event when count is set
+        emit CountSet(msg.sender, oldCount, newCount, block.timestamp);
+    }
+    
+    function getCount() public view returns (uint256) {
+        return count;
+    }
+    
+    function main() public {
+        increment();
+        increment();
+        setCount(10);
+        increment();
+    }
+}`,
+    },
+    {
+      name: 'Event Logger',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract EventLogger {
+    // Different types of events
+    event UserRegistered(address indexed user, string name, uint256 timestamp);
+    event UserUpdated(address indexed user, string oldName, string newName, uint256 timestamp);
+    event UserDeleted(address indexed user, uint256 timestamp);
+    event MessageSent(address indexed from, address indexed to, string message, uint256 timestamp);
+    
+    mapping(address => string) private userNames;
+    mapping(address => bool) private userExists;
+    
+    function registerUser(string memory name) public {
+        require(!userExists[msg.sender], "User already exists");
+        userNames[msg.sender] = name;
+        userExists[msg.sender] = true;
+        emit UserRegistered(msg.sender, name, block.timestamp);
+    }
+    
+    function updateUser(string memory newName) public {
+        require(userExists[msg.sender], "User does not exist");
+        string memory oldName = userNames[msg.sender];
+        userNames[msg.sender] = newName;
+        emit UserUpdated(msg.sender, oldName, newName, block.timestamp);
+    }
+    
+    function deleteUser() public {
+        require(userExists[msg.sender], "User does not exist");
+        delete userNames[msg.sender];
+        delete userExists[msg.sender];
+        emit UserDeleted(msg.sender, block.timestamp);
+    }
+    
+    function sendMessage(address to, string memory message) public {
+        require(userExists[msg.sender], "Sender not registered");
+        require(userExists[to], "Recipient not registered");
+        emit MessageSent(msg.sender, to, message, block.timestamp);
+    }
+    
+    function getUserName(address user) public view returns (string memory) {
+        return userNames[user];
+    }
+    
+    function main() public {
+        registerUser("Alice");
+        updateUser("Alice Smith");
+        sendMessage(address(0x123), "Hello World!");
+    }
+}`,
+    },
+    {
+      name: 'Token Events',
+      code: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract TokenEvents {
+    string public name = "Event Token";
+    string public symbol = "EVT";
+    uint8 public decimals = 18;
+    uint256 public totalSupply = 1000000 * 10**18;
+    
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    
+    // Standard ERC20 events
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    
+    // Custom events
+    event TokensMinted(address indexed to, uint256 amount, uint256 timestamp);
+    event TokensBurned(address indexed from, uint256 amount, uint256 timestamp);
+    event EmergencyStop(address indexed by, uint256 timestamp);
+    
+    bool public paused = false;
+    
+    constructor() {
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+    
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused");
+        _;
+    }
+    
+    function transfer(address to, uint256 amount) public whenNotPaused returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+    
+    function approve(address spender, uint256 amount) public whenNotPaused returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+    
+    function transferFrom(address from, address to, uint256 amount) public whenNotPaused returns (bool) {
+        require(balanceOf[from] >= amount, "Insufficient balance");
+        require(allowance[from][msg.sender] >= amount, "Insufficient allowance");
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        allowance[from][msg.sender] -= amount;
+        emit Transfer(from, to, amount);
+        return true;
+    }
+    
+    function mint(address to, uint256 amount) public whenNotPaused {
+        balanceOf[to] += amount;
+        totalSupply += amount;
+        emit TokensMinted(to, amount, block.timestamp);
+        emit Transfer(address(0), to, amount);
+    }
+    
+    function burn(uint256 amount) public whenNotPaused {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        totalSupply -= amount;
+        emit TokensBurned(msg.sender, amount, block.timestamp);
+        emit Transfer(msg.sender, address(0), amount);
+    }
+    
+    function emergencyStop() public {
+        paused = true;
+        emit EmergencyStop(msg.sender, block.timestamp);
+    }
+    
+    function main() public {
+        mint(address(0x123), 1000 * 10**18);
+        transfer(address(0x456), 500 * 10**18);
+        burn(100 * 10**18);
+    }
+}`,
+    },
+  ],
+}
 
 // Create singleton instances to prevent duplicate creation in React.StrictMode
 let globalBlockManager: BlockManager | null = null
@@ -89,6 +945,8 @@ export default function App() {
   const [isExecuting, setIsExecuting] = useState(false);
   // Code editor state - lifted up to persist across tab switches
   const [editorCode, setEditorCode] = useState('');
+  // Examples menu state
+  const [examplesAnchorEl, setExamplesAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -305,6 +1163,20 @@ export default function App() {
     });
   };
 
+  // Examples menu handlers
+  const handleExamplesClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setExamplesAnchorEl(event.currentTarget)
+  }
+
+  const handleExamplesClose = () => {
+    setExamplesAnchorEl(null)
+  }
+
+  const handleExampleSelect = (contract: any) => {
+    setEditorCode(contract.code)
+    handleExamplesClose()
+  }
+
   // Contract execution dialog handlers
   const handleCloseContractDialog = () => {
     setOpenContractDialog(false);
@@ -425,13 +1297,44 @@ export default function App() {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Typography variant="h6" noWrap component="div">
-            YZ ETH Blockchain Simulator v{packageJson.version}
+      {/* Condensed AppBar positioned above the sidebar */}
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          width: drawerWidth,
+          left: 0,
+        }}
+      >
+        <Toolbar sx={{ minHeight: '48px !important', px: 1 }}>
+          <Typography variant="subtitle1" noWrap component="div" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
+            YZ ETH v{packageJson.version}
           </Typography>
         </Toolbar>
       </AppBar>
+
+      {/* Future File Tabs Area - positioned to the right of the sidebar */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: drawerWidth,
+          right: 0,
+          height: '48px',
+          backgroundColor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          zIndex: (theme) => theme.zIndex.drawer,
+          display: 'flex',
+          alignItems: 'center',
+          px: 2,
+        }}
+      >
+        {/* Placeholder for file tabs - will be implemented later */}
+        <Typography variant="body2" color="text.secondary">
+          File tabs will appear here
+        </Typography>
+      </Box>
 
       <Drawer
         variant={isMobile ? 'temporary' : 'permanent'}
@@ -443,8 +1346,56 @@ export default function App() {
           [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
         }}
       >
-        <Toolbar />
+        <Toolbar sx={{ minHeight: '48px !important' }} />
         <Box sx={{ overflow: 'auto', display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Examples Button */}
+          <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Button
+              variant="outlined"
+              onClick={handleExamplesClick}
+              sx={{
+                width: '100%',
+                borderStyle: 'dashed',
+                '&:hover': {
+                  borderStyle: 'solid',
+                },
+              }}
+              startIcon={<MenuBookIcon />}
+              endIcon={<ArrowDropDownIcon />}
+            >
+              Examples
+            </Button>
+            <Menu
+              anchorEl={examplesAnchorEl}
+              open={Boolean(examplesAnchorEl)}
+              onClose={handleExamplesClose}
+              PaperProps={{
+                style: {
+                  maxHeight: '400px',
+                  width: '300px',
+                },
+              }}
+            >
+              {Object.entries(exampleContracts).map(([category, contracts]) => (
+                <Box key={category}>
+                  <MenuItem disabled>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {category}
+                    </Typography>
+                  </MenuItem>
+                  {(contracts as any[]).map((contract) => (
+                    <MenuItem
+                      key={contract.name}
+                      onClick={() => handleExampleSelect(contract)}
+                      sx={{ pl: 3 }}
+                    >
+                      {contract.name}
+                    </MenuItem>
+                  ))}
+                </Box>
+              ))}
+            </Menu>
+          </Box>
           <List>
             {menuItems.map((item) => (
               <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
@@ -528,7 +1479,7 @@ export default function App() {
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 8, pb: 12 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 6, pb: 12 }}>
         {activeSection === 'code' && <CodeEditor executor={executor} blockManager={blockManager} code={editorCode} setCode={setEditorCode} />}
         {activeSection === 'accounts' && <AccountManagement blockManager={blockManager} />}
       </Box>
