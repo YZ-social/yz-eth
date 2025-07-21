@@ -1,6 +1,6 @@
 # AI Session Context - YZ-ETH Blockchain Simulator
 
-**Current Version**: v0.3.13  
+**Current Version**: v0.3.14  
 **Last Updated**: December 2024  
 **Purpose**: Context file for AI assistants to understand project status and continue development work seamlessly.
 
@@ -19,14 +19,14 @@ YZ-ETH is a comprehensive web-based Ethereum blockchain simulator that allows us
 
 ---
 
-## 📋 **Recent Critical Fixes (v0.3.8 - v0.3.11)**
+## 📋 **Recent Critical Fixes (v0.3.8 - v0.3.14)**
 
 ### **GitHub Pages Deployment Issues Resolved**
 1. **Worker Path Fix**: Dynamic detection for `/yz-eth/solc-worker-bundle.js` vs `/solc-worker-bundle.js`
 2. **Build Process**: Added manual copy of worker file: `vite build && cp public/solc-worker-bundle.js dist/web/`
 3. **Web-solc Fallback**: Removed problematic `@usecannon/web-solc` dependency
 4. **Favicon Path**: Changed from hardcoded to relative: `./yz.png`
-5. **Logo Path**: Fixed sidebar YZ logo from `/yz-eth/yz.png` to `./yz.png`
+5. **Logo Path**: Fixed sidebar YZ logo with dynamic path detection and manual copy in build process (v0.3.14)
 
 ### **Deployment Modernization**
 - **Eliminated gh-pages branch**: Now uses GitHub Actions directly from main branch

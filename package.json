@@ -1,6 +1,6 @@
 {
   "name": "yz-eth",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "description": "YZ ETH Blockchain Simulator - A web-based Solidity execution environment using EthereumJS VM",
   "keywords": [
     "ethereum",
@@ -45,7 +45,7 @@
     "biome:fix": "npx @biomejs/biome check --write",
     "build": "npm run build:lib && npm run build:web",
     "build:lib": "tsc && tsc -p tsconfig.prod.esm.json && tsc -p tsconfig.prod.cjs.json",
-    "build:web": "vite build && cp public/solc-worker-bundle.js dist/web/",
+    "build:web": "vite build && cp public/solc-worker-bundle.js dist/web/ && cp public/yz.png dist/web/",
     "build:worker": "mkdir -p public && npx browserify -t babelify ./src/solc-worker.js > ./public/solc-worker-bundle.js",
     "clean": "rm -rf dist",
     "coverage": "DEBUG=ethjs npx vitest run -c vitest.config.coverage.ts",
