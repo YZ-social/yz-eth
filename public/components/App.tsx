@@ -1465,7 +1465,7 @@ export default function App() {
             }}
           >
             <img
-              src="./yz.png"
+              src="/yz.png"
               alt="YZ Logo"
               style={{
                 width: '120px',

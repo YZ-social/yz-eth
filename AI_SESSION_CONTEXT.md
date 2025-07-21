@@ -1,6 +1,6 @@
 # AI Session Context - YZ-ETH Blockchain Simulator
 
-**Current Version**: v0.3.12  
+**Current Version**: v0.3.13  
 **Last Updated**: December 2024  
 **Purpose**: Context file for AI assistants to understand project status and continue development work seamlessly.
 
