@@ -1465,7 +1465,7 @@ export default function App() {
             }}
           >
             <img
-              src="/yz.png"
+              src={window.location.pathname.includes('/yz-eth/') ? '/yz-eth/yz.png' : '/yz.png'}
               alt="YZ Logo"
               style={{
                 width: '120px',
