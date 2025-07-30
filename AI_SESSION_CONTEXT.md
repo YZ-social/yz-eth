@@ -1,8 +1,107 @@
 # AI Session Context - YZ-ETH Blockchain Simulator
 
-**Current Version**: v0.3.14  
-**Last Updated**: December 2024  
+**Current Version**: v0.1.14  
+**Last Updated**: July 30, 2025 at 02:11 PM  
 **Purpose**: Context file for AI assistants to understand project status and continue development work seamlessly.
+
+**⚠️ IMPORTANT**: Always update the "Last Updated" field with the current date and time when making any version changes or significant updates to this file.
+
+**📝 DOCUMENTATION REQUIREMENT**: Always update the `conversation.md` file after each conversation to maintain comprehensive project documentation. This file contains all development conversations and decisions. Append new conversations in the same markdown format with conversation number, user query, and assistant response summary.
+
+---
+
+## 🚀 **Next Steps: Major Model-View Architecture Refactoring**
+
+### **Objective**
+Refactor the application to implement a proper Model-View architecture with a central `BlockchainModel` class that encapsulates all state and computation. This addresses critical architectural issues in the current distributed logic pattern.
+
+### **Current Architecture Problems**
+1. **Global State Anti-Patterns**
+   - Singleton instances scattered across files (`globalBlockManager`, `globalExecutor`)
+   - Module-level global variables (`loggedContracts`, `contractAbiMap`, `solcWorker`)
+   - Manual state synchronization via polling intervals
+
+2. **State Duplication Issues**
+   - Multiple components maintaining copies of blockchain state
+   - Redundant `useState` declarations across components
+   - Inconsistent state updates leading to UI sync issues
+
+3. **Tight Coupling**
+   - Views directly calling business logic methods
+   - No clear separation between presentation and business logic
+   - Difficult to test and maintain
+
+### **Target Architecture: Central Model Pattern**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      REACT VIEWS                           │
+│  • Pure presentation logic                                  │
+│  • UI state only (form inputs, dialog states)              │
+│  • Subscribe to Model state changes                        │
+└────────────────────┬────────────────────────────────────────┘
+                     │ Observer Pattern
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 BLOCKCHAIN MODEL                           │
+│  • Single source of truth for all blockchain state         │
+│  • Encapsulates BlockManager + SolidityExecutor            │
+│  • Observer pattern for state change notifications         │
+│  • Centralized contract/account/transaction management     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Implementation Plan**
+
+**Phase 1: Model Infrastructure (v0.1.0)**
+- Create `BlockchainModel` singleton class
+- Implement observer pattern for state changes
+- Define comprehensive type system for centralized state
+
+**Phase 2: Core State Migration (v0.1.1)**
+- Move `BlockManager` and `SolidityExecutor` into model
+- Centralize all global variables into model instance
+- Eliminate module-level singletons
+
+**Phase 3: Component Refactoring (v0.1.2)**
+- Replace component state with model subscriptions
+- Remove polling intervals in favor of observer notifications
+- Implement proper View layer that only handles presentation
+
+**Phase 4: UI State Centralization (v0.1.3)**
+- Move dialog states, editor state, and selections into model
+- Create unified UI state management
+- Ensure single source of truth for all application state
+
+### **Global State Inventory (To Be Migrated)**
+
+```typescript
+// Current problematic globals:
+// public/components/App.tsx
+let globalBlockManager: BlockManager | null = null
+let globalExecutor: SolidityExecutor | null = null
+
+// public/components/BlockchainView.tsx  
+const loggedContracts = new Set<string>()
+const contractAbiMap = new Map<string, ContractInfo>()
+const deploymentOrder: DeploymentInfo[]
+
+// src/solidityExecutor.ts
+let solcWorker: SolcWorker | null = null
+```
+
+### **Benefits Expected**
+- **Performance**: Eliminate redundant state updates and polling
+- **Maintainability**: Clear separation of concerns and single source of truth
+- **Testability**: Isolated business logic in Model class
+- **Scalability**: Observer pattern supports future feature additions
+- **Debugging**: Centralized state makes issues easier to track
+
+### **Version Strategy Change**
+Starting with this refactoring, version numbering changes to:
+- **v0.1.0**: Major architectural refactoring to Model-View pattern
+- **v0.1.x**: Subsequent patches following minor version increment pattern
+- Each change increments patch version as per established workflow
 
 ---
 
@@ -19,7 +118,9 @@ YZ-ETH is a comprehensive web-based Ethereum blockchain simulator that allows us
 
 ---
 
-## 📋 **Recent Critical Fixes (v0.3.8 - v0.3.14)**
+## 📋 **Pre-Refactoring History (v0.3.8 - v0.3.14)**
+
+*These fixes established a stable foundation for the architectural refactoring:*
 
 ### **GitHub Pages Deployment Issues Resolved**
 1. **Worker Path Fix**: Dynamic detection for `/yz-eth/solc-worker-bundle.js` vs `/solc-worker-bundle.js`
@@ -36,6 +137,8 @@ YZ-ETH is a comprehensive web-based Ethereum blockchain simulator that allows us
 ### **Dependency Management**
 - **Fixed vitest conflicts**: Updated to compatible versions (3.2.4)
 - **Cleaned package.json**: Removed unused deploy scripts and gh-pages dependency
+
+**Note**: These foundational fixes ensure that the upcoming Model-View refactoring can be deployed reliably.
 
 ---
 
@@ -61,11 +164,13 @@ YZ-ETH is a comprehensive web-based Ethereum blockchain simulator that allows us
 
 ---
 
-## 🔍 **Comprehensive Analysis: Missing Features for Full Blockchain Tool**
+## 🔍 **Future Features Roadmap: Context for Model-View Architecture**
 
-*Based on thorough codebase analysis and blockchain development best practices*
+*All listed features will be implemented AFTER the Model-View refactoring is complete. The refactoring is essential to support these features properly with centralized state management and proper separation of concerns.*
 
-## **🎯 Priority 1: Essential Analytics & Development Tools**
+**⚠️ IMPORTANT**: Do not implement any of these features until Phases 1-4 of the Model-View refactoring are complete. The current architecture cannot support these features effectively.
+
+## **🎯 Priority 1: Essential Analytics & Development Tools** *(Post-Refactoring v0.2.x)*
 
 ### **📊 Blockchain Analytics Dashboard**
 **Status**: MISSING - Critical for blockchain exploration
@@ -110,7 +215,7 @@ interface BlockchainAnalytics {
 - Memory usage tracking
 - Database query performance for blockchain data
 
-## **🎯 Priority 2: Enhanced Development Environment**
+## **🎯 Priority 2: Enhanced Development Environment** *(Post-Refactoring v0.3.x)*
 
 ### **🔧 Smart Contract Development Suite**
 **Status**: PARTIAL - Needs expansion
@@ -143,7 +248,7 @@ interface BlockchainAnalytics {
 - **Access control verification**
 - **Gas griefing protection analysis**
 
-## **🎯 Priority 3: Data Management & Integration**
+## **🎯 Priority 3: Data Management & Integration** *(Post-Refactoring v0.4.x)*
 
 ### **💾 Advanced Data Export/Import**
 **Status**: MISSING - Important for workflow integration
@@ -175,7 +280,7 @@ interface BlockchainAnalytics {
 - **Account balance flow diagrams**
 - **Time-series analysis tools**
 
-## **🎯 Priority 4: User Experience & Workflow**
+## **🎯 Priority 4: User Experience & Workflow** *(Post-Refactoring v0.5.x)*
 
 ### **👥 Collaborative Features**
 **Status**: MISSING - Important for team development
@@ -206,22 +311,46 @@ interface BlockchainAnalytics {
 
 ---
 
-## 🛠 **Implementation Roadmap**
+## 🛠 **Complete Implementation Roadmap**
 
-### **Phase 1: Analytics Foundation (v0.4.x)**
+### **CURRENT PRIORITY: Model-View Refactoring (v0.1.x)**
+
+**Phase 1: Model Infrastructure (v0.1.0)** - *IN PROGRESS*
+- Create `BlockchainModel` singleton class
+- Implement observer pattern for state changes
+- Define comprehensive type system for centralized state
+
+**Phase 2: Core State Migration (v0.1.1)**
+- Move `BlockManager` and `SolidityExecutor` into model
+- Centralize all global variables into model instance
+- Eliminate module-level singletons
+
+**Phase 3: Component Refactoring (v0.1.2)**
+- Replace component state with model subscriptions
+- Remove polling intervals in favor of observer notifications
+- Implement proper View layer that only handles presentation
+
+**Phase 4: UI State Centralization (v0.1.3)**
+- Move dialog states, editor state, and selections into model
+- Create unified UI state management
+- Ensure single source of truth for all application state
+
+### **POST-REFACTORING: Feature Development**
+
+**Phase 5: Analytics Foundation (v0.2.x)** - *Enabled by Model Architecture*
 1. **Transaction Analytics Dashboard**
-   - Time-series graphs for transaction volume
+   - Time-series graphs for transaction volume (using centralized Model state)
    - Gas usage analytics and optimization suggestions
-   - Basic performance metrics
+   - Basic performance metrics with observer pattern updates
 
 2. **Enhanced Debugging**
-   - Step-through debugger implementation
-   - State inspection tools
+   - Step-through debugger implementation (integrated with Model)
+   - State inspection tools (accessing centralized blockchain state)
    - Call stack visualization
 
-### **Phase 2: Development Environment (v0.5.x)**
+**Phase 6: Development Environment (v0.3.x)**
 1. **Multi-file Project Support**
-   - File explorer with import/export
+   - File explorer with import/export (managed by Model)
    - Library dependency management
    - Project templates
 
@@ -230,7 +359,7 @@ interface BlockchainAnalytics {
    - Common vulnerability detection
    - Security best practices integration
 
-### **Phase 3: Advanced Features (v0.6.x)**
+**Phase 7: Advanced Features (v0.4.x)**
 1. **Network Simulation**
    - Multi-node blockchain simulation
    - Realistic network conditions
@@ -241,7 +370,7 @@ interface BlockchainAnalytics {
    - DeFi protocol simulation
    - Oracle integration
 
-### **Phase 4: Collaboration & Polish (v0.7.x)**
+**Phase 8: Collaboration & Polish (v0.5.x)**
 1. **Collaborative Features**
    - Project sharing and version control
    - Real-time collaboration
@@ -279,29 +408,39 @@ interface BlockchainAnalytics {
 
 ---
 
-## 🎯 **Current Development Priorities**
+## 🎯 **CRITICAL: Current Development Priorities**
 
-### **Immediate Next Steps (v0.3.12+)**
-1. **Analytics Dashboard Implementation**
-   - Create `components/AnalyticsDashboard.tsx`
-   - Implement transaction volume tracking
-   - Add gas usage visualization
+### **🚨 IMMEDIATE FOCUS: Model-View Refactoring (v0.1.x)**
 
-2. **Enhanced Debugging Tools**
-   - Extend `solidityExecutor.ts` with debugging capabilities
-   - Implement step-through execution
-   - Add state inspection interface
+**DO NOT implement any new features until the refactoring is complete. All development effort must focus on:**
 
-3. **Multi-file Project Support**
-   - Create project file management system
-   - Implement import/export functionality
-   - Add project templates
+1. **Phase 1: Model Infrastructure (v0.1.0)** - *CURRENT TASK*
+   - Create `src/model/BlockchainModel.ts` with observer pattern
+   - Define centralized state interfaces and types
+   - Implement singleton pattern for model access
 
-### **Technical Debt & Optimization**
+2. **Phase 2: Core State Migration (v0.1.1)**
+   - Move `BlockManager` and `SolidityExecutor` into model
+   - Eliminate global variables: `globalBlockManager`, `globalExecutor`, `solcWorker`
+   - Centralize contract registry and deployment tracking
+
+3. **Phase 3: Component Refactoring (v0.1.2)**
+   - Replace all `useState` with model subscriptions in components
+   - Remove all `setInterval` polling in favor of observer notifications
+   - Update components to pure presentation logic
+
+4. **Phase 4: UI State Centralization (v0.1.3)**
+   - Move dialog states, editor code, active section into model
+   - Eliminate redundant state across components
+   - Complete separation of View and Model layers
+
+### **⚠️ POST-REFACTORING Technical Debt** *(Address after v0.1.3)*
 - **Code splitting** to reduce initial bundle size (currently 1.4MB)
-- **Worker thread optimization** for better compilation performance
+- **Worker thread optimization** for better compilation performance  
 - **Error handling improvements** for better user experience
 - **Test coverage expansion** for critical components
+
+**Remember**: The refactoring will solve many current architectural issues and enable clean implementation of all planned features.
 
 ---
 
@@ -327,18 +466,24 @@ git push origin main # Triggers GitHub Actions deployment
 
 When continuing work on this project:
 
-1. **Read this entire file** to understand current status and analysis
-2. **Check current version** in `package.json` and increment minor version for each change
-3. **Review recent commits** with `git log --oneline -10` to see latest changes
-4. **Prioritize features** from the roadmap based on user needs
+1. **Read this entire file** to understand current refactoring status
+2. **Check current version** in `package.json` and increment patch version for each change (v0.1.x pattern)
+3. **PRIORITIZE Model-View refactoring** - do not implement features until v0.1.3 is complete
+4. **Focus on current phase** from the Implementation Plan above
 5. **Maintain code quality** with TypeScript strict mode and comprehensive error handling
-6. **Test thoroughly** before deploying, especially worker functionality
+6. **Test thoroughly** during refactoring to ensure no functionality is lost
 
-### **Common User Requests & Context**
-- **"Continue blockchain analysis work"** → Refer to Priority 1-4 sections above
-- **"Fix deployment issues"** → Check if it's related to GitHub Pages paths or worker files
-- **"Add new features"** → Reference the missing features analysis and roadmap
-- **"Improve performance"** → Focus on bundle size optimization and worker thread improvements
+### **⚠️ CRITICAL: Common User Requests & Context**
+- **"Add new features"** → ❌ STOP: Explain that features must wait until Model-View refactoring is complete (v0.1.3)
+- **"Continue blockchain analysis work"** → ❌ REDIRECT: Focus on refactoring first, then analytics can be properly implemented
+- **"Fix deployment issues"** → ✅ OK: Address any deployment issues that affect refactoring work
+- **"Improve performance"** → ⚠️ PARTIAL: Only performance improvements that support refactoring goals
+
+### **🎯 Current Refactoring Status**
+- **v0.1.0**: Model infrastructure creation (IN PROGRESS)
+- **Next**: Core state migration (v0.1.1)
+- **Goal**: Complete Model-View separation by v0.1.3
+- **Then**: All planned features can be implemented cleanly on the new architecture
 
 ---
 
