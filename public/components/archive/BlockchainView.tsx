@@ -28,6 +28,7 @@ import {
 import React, { useState, useEffect } from 'react'
 import { BlockManager, LogEntry, Transaction } from '../../src/blockManager'
 import { SolidityExecutor } from '../../src/solidityExecutor'
+import { formatHash, formatAddress, formatId } from '../../src/utils/formatters'
 import { formatEther } from 'ethers'
 
 interface BlockchainViewProps {
@@ -114,7 +115,13 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         const isNewContract = !loggedContracts.has(tx.contractAddress)
 
         if (isNewContract) {
-          console.log('🏗️ Found NEW deployment transaction:', tx)
+          console.log('🏗️ Found NEW deployment transaction:', {
+            ...tx,
+            id: formatId(tx.id),
+            from: formatAddress(tx.from),
+            to: formatAddress(tx.to),
+            contractAddress: formatAddress(tx.contractAddress)
+          })
           loggedContracts.add(tx.contractAddress)
         }
 
@@ -129,15 +136,22 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
           contractName = storedContract.name
           if (isNewContract) {
             console.log('✅ Using stored ABI for contract:', {
-              address: tx.contractAddress,
+              address: formatAddress(tx.contractAddress),
               name: contractName,
               functions: abi.length,
             })
           }
         } else if (executor && isNewContract) {
           // Try to get contract info by address from executor first
-          console.log('🔍 Attempting address lookup for:', tx.contractAddress)
-          console.log('🔍 All stored contracts in executor:', executor.getAllStoredContracts())
+          console.log('🔍 Attempting address lookup for:', formatAddress(tx.contractAddress))
+          const allContracts = executor.getAllStoredContracts()
+          console.log('🔍 All stored contracts in executor:', allContracts && Array.isArray(allContracts) 
+            ? allContracts.map((c: any) => ({
+                ...c,
+                address: c.address ? formatAddress(c.address) : c.address
+              }))
+            : allContracts
+          )
           const contractInfo = executor.getContractByAddress(tx.contractAddress)
           console.log('🔍 Address lookup result:', contractInfo)
 
@@ -152,7 +166,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
             console.log('✅ Using contract info from executor address lookup:', {
               name: contractName,
               functions: abi.length,
-              address: tx.contractAddress,
+              address: formatAddress(tx.contractAddress),
             })
           } else {
             // Fallback to last compiled (old behavior)
@@ -172,7 +186,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                 lastCompiledName: lastCompiledName,
                 detectedName: detectedName,
                 actualContractName: actualContractName,
-                contractAddress: tx.contractAddress,
+                contractAddress: formatAddress(tx.contractAddress),
               })
 
               if (lastCompiledAbi && Array.isArray(lastCompiledAbi) && lastCompiledAbi.length > 0) {
@@ -189,7 +203,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
               } else {
                 // Fallback to detecting from transaction data
                 abi = getSmartContractAbi(tx)
-                contractName = detectedName || `Contract_${tx.contractAddress.slice(0, 8)}`
+                contractName = detectedName || `Contract_${formatAddress(tx.contractAddress)?.slice(-5) || tx.contractAddress.slice(0, 8)}`
 
                 // Store the fallback ABI too
                 contractAbiMap.set(tx.contractAddress, { abi, name: contractName })
@@ -202,7 +216,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
             } catch (error) {
               console.warn('❌ Failed to get real ABI, using fallback:', error)
               abi = getSmartContractAbi(tx)
-              contractName = detectContractName(tx) || `Contract_${tx.contractAddress.slice(0, 8)}`
+              contractName = detectContractName(tx) || `Contract_${formatAddress(tx.contractAddress)?.slice(-5) || tx.contractAddress.slice(0, 8)}`
 
               // Store the fallback ABI
               contractAbiMap.set(tx.contractAddress, { abi, name: contractName })
@@ -211,7 +225,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         } else {
           // For existing contracts or when no executor, use fallback detection
           abi = getSmartContractAbi(tx)
-          contractName = detectContractName(tx) || `Contract_${tx.contractAddress.slice(0, 8)}`
+          contractName = detectContractName(tx) || `Contract_${formatAddress(tx.contractAddress)?.slice(-5) || tx.contractAddress.slice(0, 8)}`
 
           // Store the detected ABI if not already stored
           if (!contractAbiMap.has(tx.contractAddress)) {
@@ -246,7 +260,11 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         }
 
         if (isNewContract) {
-          console.log('📋 Created contract object:', contract)
+          console.log('📋 Created contract object:', {
+            ...contract,
+            address: formatAddress(contract.address),
+            deploymentTxId: formatId(contract.deploymentTxId)
+          })
         }
         contracts.push(contract)
       }
@@ -255,7 +273,11 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
     // Only log when we have new contracts (global count increase)
     const hasNewContracts = contracts.length > lastLoggedContractsCount
     if (hasNewContracts) {
-      console.log('📦 Final contracts array:', contracts)
+      console.log('📦 Final contracts array:', contracts.map(c => ({
+        ...c,
+        address: formatAddress(c.address),
+        deploymentTxId: formatId(c.deploymentTxId)
+      })))
       lastLoggedContractsCount = contracts.length
     }
     setDeployedContracts(contracts)
@@ -268,7 +290,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
 
       // Debug: Log bytecode patterns for analysis
       console.log('🔍 Bytecode analysis for contract:', {
-        contractAddress: tx.contractAddress,
+        contractAddress: formatAddress(tx.contractAddress),
         bytecodeLength: bytecode.length,
         hasIncrement: bytecode.includes('increment'),
         hasGetCount: bytecode.includes('getcount'),
@@ -610,7 +632,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
         if (result.logs && result.logs.length > 0) {
           output += `📋 Event logs:\n`
           result.logs.forEach((log, index) => {
-            output += `  ${index + 1}. Address: ${log.address}\n`
+            output += `  ${index + 1}. Address: ${formatAddress(log.address)}\n`
             output += `     Topics: ${log.topics.join(', ')}\n`
             output += `     Data: ${log.data}\n`
           })
@@ -788,7 +810,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                         <span>{renderTransactionType(tx.type, tx)}</span>
                         <span>{renderTransactionStatus(tx.status)}</span>
                         <Typography variant="body2" component="span" sx={{ fontWeight: 'bold' }}>
-                          {tx.id} - {(() => {
+                          {formatId(tx.id)} - {(() => {
                             if (tx.type === 'function_call' && calledContract && tx.functionName) {
                               return `${calledContract.name} - ${tx.functionName}()`
                             } else if (tx.type === 'function_call' && tx.functionName) {
@@ -797,9 +819,9 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                               return `Contract Call - ${tx.functionName}()`
                             } else if (tx.type === 'account_creation') {
                               if (tx.from === '0x0000000000000000000000000000000000000000') {
-                                return `Genesis Account - ${tx.to?.slice(0, 8)}...`
+                                return `Genesis Account - ${formatAddress(tx.to)}`
                               } else {
-                                return `Account Creation - ${tx.to?.slice(0, 8)}...`
+                                return `Account Creation - ${formatAddress(tx.to)}`
                               }
                             } else if (tx.type === 'eth_transfer') {
                               return `ETH Transfer - ${formatEther(tx.value)} ETH`
@@ -830,7 +852,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                                 // Fallback for contracts without full details
                                 const fallbackContract: DeployedContract = {
                                   address: tx.contractAddress!,
-                                  name: `Contract_${tx.contractAddress!.slice(0, 8)}`,
+                                  name: `Contract_${formatAddress(tx.contractAddress!)?.slice(-5) || tx.contractAddress!.slice(0, 8)}`,
                                   deploymentTxId: tx.id,
                                   abi: getSmartContractAbi(tx),
                                   functions: getSmartContractAbi(tx)
@@ -887,7 +909,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                               fontSize: '0.8rem'
                             }}
                           >
-                            Contract: {tx.contractAddress}
+                            Contract: {formatAddress(tx.contractAddress)}
                           </Typography>
                         )}
                         {tx.type === 'account_creation' && (
@@ -896,7 +918,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                               {tx.from === '0x0000000000000000000000000000000000000000' ? '👑 Genesis Account:' : '👤 Account Created:'}
                             </Typography>
                             <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              Address: {tx.to}
+                              Address: {formatAddress(tx.to)}
                             </Typography>
                             <Typography variant="body2" component="div">
                               Initial Balance: {formatEther(tx.value)} ETH
@@ -914,10 +936,10 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                               💸 ETH Transfer:
                             </Typography>
                             <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              From: {tx.from}
+                              From: {formatAddress(tx.from)}
                             </Typography>
                             <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              To: {tx.to}
+                              To: {formatAddress(tx.to)}
                             </Typography>
                             <Typography variant="body2" component="div" sx={{ fontWeight: 'bold' }}>
                               Amount: {formatEther(tx.value)} ETH
@@ -930,10 +952,10 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                               🔗 Contract-to-Contract Call:
                             </Typography>
                             <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              From Contract: {tx.from}
+                              From Contract: {formatAddress(tx.from)}
                             </Typography>
                             <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              To Contract: {tx.to}
+                              To Contract: {formatAddress(tx.to)}
                             </Typography>
                             <Typography variant="body2" component="div">
                               Function: {tx.functionName}
@@ -1140,7 +1162,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
                   secondary={
                     <Box component="div">
                       <Typography variant="body2" component="div">
-                        Address: {log.address}
+                        Address: {formatAddress(log.address)}
                       </Typography>
                       <Typography variant="body2" component="div">
                         Topics: {log.topics.join(', ')}
@@ -1229,7 +1251,7 @@ export default function BlockchainView({ blockManager, executor }: BlockchainVie
               <Typography variant="body2">{selectedContract?.name || 'Unnamed Contract'}</Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Address:</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {selectedContract?.address || 'N/A'}
+                {formatAddress(selectedContract?.address) || 'N/A'}
               </Typography>
             </Box>
           </Paper>

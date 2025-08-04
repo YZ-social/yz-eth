@@ -17,26 +17,30 @@ import {
 import React, { useState, useEffect } from 'react'
 import { BlockManager } from '../../src/blockManager'
 import { TransferModal } from './index'
+import { useMultisynq } from '../../src/components/YZProvider'
+import { formatAddress } from '../../src/utils/formatters'
 
 interface AccountManagementProps {
   blockManager: BlockManager
 }
 
 export default function AccountManagement({ blockManager }: AccountManagementProps) {
+  const { blockchainState, publish } = useMultisynq()
   const [accounts, setAccounts] = useState<any[]>([])
   const [openDialog, setOpenDialog] = useState(false)
   const [newAccountBalance, setNewAccountBalance] = useState('1000000000000000000')
   const [transferModalOpen, setTransferModalOpen] = useState(false)
 
   useEffect(() => {
-    updateAccounts()
-    const interval = setInterval(updateAccounts, 5000) // Refresh every 5 seconds
-    return () => clearInterval(interval)
-  }, [blockManager])
+    // Get accounts from Multisynq blockchain state instead of BlockManager
+    if (blockchainState?.accounts) {
+      setAccounts(blockchainState.accounts)
+    }
+  }, [blockchainState])
 
   const updateAccounts = () => {
-    const accountList = blockManager.getAccounts()
-    setAccounts(accountList)
+    // Accounts are now automatically updated via Multisynq state
+    // This function is kept for compatibility but no longer needed
   }
 
   const handleOpenDialog = () => {
@@ -50,9 +54,17 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
 
   const handleCreateAccount = async () => {
     try {
-      const balance = BigInt(newAccountBalance)
-      await blockManager.createAccount(balance)
-      updateAccounts()
+      const balance = newAccountBalance
+      
+      // Publish account creation request through Multisynq
+      const accountData = {
+        balance: balance,
+        type: 'account_creation'
+      }
+      
+      console.log("AccountManagement: Publishing account creation through Multisynq:", accountData)
+      publish('blockchain', 'createAccount', accountData)
+      
       handleCloseDialog()
     } catch (error: any) {
       console.error('Error creating account:', error)
@@ -115,8 +127,8 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
               <React.Fragment key={index}>
                 <ListItem>
                   <ListItemText
-                    primary={`Address: ${account.address}`}
-                    secondary={`Balance: ${account.balance.toString()} wei | Nonce: ${account.nonce.toString()} | ${account.isContract ? 'Contract' : 'EOA'}`}
+                    primary={`Address: ${formatAddress(account.address)}`}
+                    secondary={`Balance: ${account.balance?.toString() || '0'} wei${account.nonce !== undefined ? ` | Nonce: ${account.nonce}` : ''}${account.isContract !== undefined ? ` | ${account.isContract ? 'Contract' : 'EOA'}` : ''}`}
                   />
                 </ListItem>
                 {index < accounts.length - 1 && <Divider />}

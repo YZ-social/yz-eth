@@ -18,6 +18,8 @@ import AceEditor from 'react-ace'
 import 'ace-builds/src-noconflict/theme-monokai'
 import { BlockManager } from '../../src/blockManager'
 import { SolidityExecutor } from '../../src/solidityExecutor'
+import { useMultisynq } from '../../src/components/YZProvider'
+import { formatAddress } from '../../src/utils/formatters';
 
 interface CodeEditorProps {
   executor: SolidityExecutor
@@ -29,6 +31,7 @@ interface CodeEditorProps {
 
 
 export default function CodeEditor({ executor, blockManager, code, setCode }: CodeEditorProps) {
+  const { publish } = useMultisynq()
   const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
   const editorRef = useRef<any>(null)
@@ -45,22 +48,33 @@ export default function CodeEditor({ executor, blockManager, code, setCode }: Co
     setLoading(true)
     setOutput('')
     try {
-      const result = await executor.deploySolidity(code)
-      if (result.success) {
-        let outputText = '✅ Deployment successful!\n'
-        outputText += `📊 Gas used: ${result.gasUsed.toString()}\n`
-        outputText += `📤 Output: ${result.output}\n`
-        if (result.logs && result.logs.length > 0) {
-          outputText += `📋 Logs:\n${result.logs.join('\n')}\n`
-        }
-        if (result.contractAddress) {
-          outputText += `🏗️ Contract deployed at: ${result.contractAddress}\n`
-          outputText += `💡 Go to Dashboard to execute contract functions.\n`
-        }
-        setOutput(outputText)
-      } else {
-        setOutput(`❌ Deployment failed: ${result.error}`)
+      // First compile the contract using the executor (this doesn't create transactions)
+      const compiledContracts = await executor.compileSolidity(code)
+      if (compiledContracts.length === 0) {
+        setOutput(`❌ Compilation failed: No contracts found in the code`)
+        return
       }
+
+      // Get the first compiled contract
+      const contract = compiledContracts[0]
+
+      // If compilation is successful, publish deployment through Multisynq
+      const deploymentData = {
+        contractName: contract.contractName || 'UnnamedContract',
+        bytecode: contract.bytecode,
+        abi: contract.abi || [],
+        from: "0x1234567890123456789012345678901234567890", // Default account
+        sourceCode: code
+      }
+
+      console.log("CodeEditor: Publishing contract deployment through Multisynq:", {
+        ...deploymentData,
+        from: formatAddress(deploymentData.from)
+      })
+      publish('blockchain', 'deployContract', deploymentData)
+      
+      setOutput('🚀 Contract deployment submitted to blockchain!\n⏳ Transaction added to pending queue...\n💡 Click "Mine Block" in the status bar to process immediately, or wait up to 15 seconds for auto-mining.')
+      
     } catch (error: any) {
       setOutput(
         `❌ Deployment failed: ${error.message || 'An error occurred while deploying the contract'}`,
@@ -74,24 +88,62 @@ export default function CodeEditor({ executor, blockManager, code, setCode }: Co
     setLoading(true)
     setOutput('')
     try {
-      const result = await executor.executeSolidity(code)
-      if (result.success) {
-        let outputText = '✅ Execution successful!\n'
-        outputText += `📊 Gas used: ${result.gasUsed.toString()}\n`
-        outputText += `📤 Output: ${result.output}\n`
-        if (result.logs && result.logs.length > 0) {
-          outputText += `📋 Logs:\n${result.logs.join('\n')}\n`
-        }
-        if (result.contractAddress) {
-          outputText += `🏗️ Contract deployed at: ${result.contractAddress}\n`
-        }
-        setOutput(outputText)
-      } else {
-        setOutput(`❌ Execution failed: ${result.error}`)
+      // First compile the contract using the executor
+      const compiledContracts = await executor.compileSolidity(code)
+      if (compiledContracts.length === 0) {
+        setOutput(`❌ Compilation failed: No contracts found in the code`)
+        return
       }
+
+      // Get the first compiled contract
+      const contract = compiledContracts[0]
+
+      // 1. First publish: Deploy the contract
+      const deploymentData = {
+        contractName: contract.contractName || 'UnnamedContract',
+        bytecode: contract.bytecode,
+        abi: contract.abi || [],
+        from: "0x1234567890123456789012345678901234567890", // Default account
+        sourceCode: code
+      }
+
+      console.log("CodeEditor: Publishing contract deployment through Multisynq:", {
+        ...deploymentData,
+        from: formatAddress(deploymentData.from)
+      })
+      publish('blockchain', 'deployContract', deploymentData)
+
+      // 2. Second publish: Execute main function if it exists
+      const mainFunction = contract.abi.find(
+        (item: any) =>
+          item.type === 'function' &&
+          (item.name === 'main' || item.name === 'test' || item.name === 'run'),
+      )
+
+      if (mainFunction) {
+        // Create execution request - let the model handle the transaction creation
+        const executionData = {
+          contractName: contract.contractName || 'UnnamedContract',
+          functionName: mainFunction.name,
+          functionArgs: [], // Empty args for main/test/run functions
+          from: "0x1234567890123456789012345678901234567890",
+          abi: contract.abi
+        }
+
+        console.log("CodeEditor: Publishing contract execution through Multisynq:", {
+          ...executionData,
+          from: formatAddress(executionData.from)
+        })
+        publish('blockchain', 'executeTransaction', executionData)
+        
+        setOutput(`🚀 Contract deployment & execution submitted to blockchain!\n⏳ Two publish events sent (deploy + execute)...\n💡 Click "Mine Block" in the status bar to process immediately, or wait up to 15 seconds for auto-mining.\n🔧 Main function "${mainFunction.name}" will be executed after deployment.`)
+      } else {
+        setOutput('🚀 Contract deployment submitted to blockchain!\n⏳ Deploy event published...\n💡 Click "Mine Block" in the status bar to process immediately, or wait up to 15 seconds for auto-mining.\n📝 No main function found to execute.')
+      }
+      
     } catch (error: any) {
       setOutput(
-        `❌ Execution failed: ${error.message || 'An error occurred while executing the code'}`,
+        `❌ Execution failed: ${error.message || 'An error occurred while deploying and executing the contract'}`,
       )
     } finally {
       setLoading(false)
@@ -179,16 +231,7 @@ export default function CodeEditor({ executor, blockManager, code, setCode }: Co
           disabled={loading}
           sx={{ mr: 1 }}
         >
-          Deploy Only
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<PlayArrowIcon />}
-          onClick={handleRun}
-          disabled={loading}
-          sx={{ mr: 1 }}
-        >
-          Deploy & Run
+          Deploy
         </Button>
         <Button variant="outlined" startIcon={<ClearIcon />} onClick={handleClear}>
           Clear
@@ -314,7 +357,7 @@ export default function CodeEditor({ executor, blockManager, code, setCode }: Co
                 }}
               >
                 {output ||
-                  'No output yet.\n• "Deploy Only" - Just deploys the contract to the blockchain\n• "Deploy & Run" - Deploys and automatically runs main/test/run function if available'}
+                  'No output yet.\n• "Deploy" - Deploys the contract to the blockchain.'}
               </Typography>
             )}
           </Box>

@@ -40,7 +40,9 @@ import { BlockManager } from '../../src/blockManager'
 import { SolidityExecutor } from '../../src/solidityExecutor'
 import { AccountManagement, CodeEditor, TransferModal, TransactionDetailsModal } from './index'
 import packageJson from '../../package.json'
-import TransactionSliderBar from './TransactionSliderBar';
+import YZStatus from '../../src/components/YZStatus';
+import YZSliderBar from '../../src/components/YZSliderBar';
+import { formatHash, formatAddress, formatId } from '../../src/utils/formatters';
 import { Transaction } from '../../src/blockManager';
 
 const drawerWidth = 240
@@ -1424,34 +1426,7 @@ export default function App() {
           </List>
           <Divider />
 
-          {/* Current Block Info */}
-          <Box sx={{ px: 2, py: 1 }}>
-            <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: '#f5f5f5' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Current Block
-              </Typography>
-              {currentBlock ? (
-                <Box>
-                  <Typography variant="body2">
-                    <strong>Number:</strong> {currentBlock.blockNumber.toString()}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Gas Used:</strong> {currentBlock.gasUsed.toString()} / {currentBlock.gasLimit.toString()}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Transactions:</strong> {currentBlock.transactions.length}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Timestamp:</strong> {new Date(Number(currentBlock.timestamp) * 1000).toLocaleString()}
-                  </Typography>
-                </Box>
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  No block data available
-                </Typography>
-              )}
-            </Paper>
-          </Box>
+          {/* Current Block Info removed as per user request */}
 
           {/* YZ Logo */}
           <Box
@@ -1479,19 +1454,16 @@ export default function App() {
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 6, pb: 12 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 6, pb: 20 }}>
+        {/* Add YZ Status at the top of all sections */}
+        <YZStatus />
+        
         {activeSection === 'code' && <CodeEditor executor={executor} blockManager={blockManager} code={editorCode} setCode={setEditorCode} />}
         {activeSection === 'accounts' && <AccountManagement blockManager={blockManager} />}
       </Box>
-      <TransactionSliderBar
-        transactions={transactions}
-        getTransactionTypeIcon={getTransactionTypeIcon}
-        getTransactionStatusIcon={getTransactionStatusIcon}
-        onTileClick={setSelectedTx}
-        selectedTxId={selectedTx?.id}
-        deployedContracts={deployedContracts}
-        onContractExecute={handleContractExecute}
-      />
+
+      {/* Fixed YZ Block Slider at bottom of page */}
+      <YZSliderBar />
       
       {/* Transaction Details Modal */}
       <TransactionDetailsModal

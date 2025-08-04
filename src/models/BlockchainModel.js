@@ -1,11 +1,16 @@
-// src/models/BlockchainModel.js
-// Following Multisynq Hello World MyModel pattern for YZ-ETH Blockchain
+// BlockchainModel.js - Multisynq Model for Blockchain Simulation
+// This is our proven model from multisynq-test.html, now as a separate module
 
-class BlockchainModel extends Multisynq.Model {
+// Wait for Multisynq to be available
+if (typeof window !== 'undefined' && !window.Multisynq) {
+    console.warn("BlockchainModel: Multisynq not yet available, model will initialize when loaded");
+}
+
+class BlockchainModel extends (window?.Multisynq?.Model || class {}) {
     init() {
         console.log("BlockchainModel: Initializing...");
-        console.log("Force a change 0001");
-        // Initialize blockchain state (like Hello World's count = 0)
+        
+        // Initialize blockchain state
         this.blocks = [];
         this.accounts = [
             { address: "0x1234567890123456789012345678901234567890", balance: 1000n },
@@ -17,11 +22,11 @@ class BlockchainModel extends Multisynq.Model {
         this.pendingTransactions = [];
         this.heartbeatCount = 0;
         
-        // Subscribe to blockchain events (like Hello World's counter reset)
-        this.subscribe("blockchain", "createBlock", this.createBlock);
-        this.subscribe("blockchain", "executeTransaction", this.executeTransaction);
-        this.subscribe("blockchain", "deployContract", this.deployContract);
-        this.subscribe("compilation", "complete", this.handleCompiledContract);
+        // Subscribe to blockchain events
+        this.subscribe("blockchain", "createBlock", "createBlock");
+        this.subscribe("blockchain", "executeTransaction", "executeTransaction");
+        this.subscribe("blockchain", "deployContract", "deployContract");
+        this.subscribe("compilation", "complete", "handleCompiledContract");
         
         // Create genesis block
         this.createGenesisBlock();
@@ -29,264 +34,319 @@ class BlockchainModel extends Multisynq.Model {
         // Start heartbeat counter (1 second intervals)
         this.future(1000).heartbeat();
         
-        // Auto-mine blocks every 10 seconds (like Hello World's tick)
-        this.future(10000).autoMineBlock();
+        // Auto-mine blocks every 15 seconds
+        this.future(15000).autoMineBlock();
         
         console.log("BlockchainModel: Initialized with genesis block");
     }
-    
+
     createGenesisBlock() {
         const genesisBlock = {
-            number: 0,
+            blockNumber: 0,
+            timestamp: this.now(),
+            parentHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            hash: this.generateBlockHash(0, this.now(), "0x0000000000000000000000000000000000000000000000000000000000000000", []),
             transactions: [],
-            timestamp: this.now(), // Use Multisynq deterministic time
-            hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-            parentHash: "0x0000000000000000000000000000000000000000000000000000000000000000"
+            miner: "genesis",
+            nonce: 0
         };
         
         this.blocks.push(genesisBlock);
-        this.publish("blockchain", "blockAdded", { 
-            block: genesisBlock,
-            isGenesis: true 
-        });
+        this.publish("blockchain", "blockAdded", { block: genesisBlock, blockNumber: 0 });
     }
-    
-    createBlock() {
+
+    createBlock(data = {}) {
         console.log("BlockchainModel: Creating new block...");
         
-        // Create new block (like Hello World's resetCounter)
+        const blockNumber = this.currentBlockNumber + 1;
+        const parentHash = this.blocks[this.blocks.length - 1].hash;
+        const timestamp = this.now();
+        const transactions = [...this.pendingTransactions];
+        
+        // Execute all pending transactions
+        transactions.forEach(tx => {
+            this.executeTransactionInternal(tx);
+        });
+        
+        const hash = this.generateBlockHash(blockNumber, timestamp, parentHash, transactions);
+        
         const newBlock = {
-            number: this.currentBlockNumber + 1,
-            transactions: [...this.pendingTransactions],
-            timestamp: this.now(), // Use Multisynq deterministic time
-            hash: this.generateBlockHash(),
-            parentHash: this.getLastBlock().hash
+            blockNumber,
+            timestamp,
+            parentHash,
+            hash,
+            transactions,
+            miner: data.miner || "default_miner",
+            nonce: Math.floor(Math.random() * 1000000)
         };
         
         this.blocks.push(newBlock);
-        this.currentBlockNumber++;
+        this.currentBlockNumber = blockNumber;
         this.pendingTransactions = []; // Clear pending transactions
         
-        console.log(`BlockchainModel: Block ${newBlock.number} created with ${newBlock.transactions.length} transactions`);
+        console.log(`BlockchainModel: Block ${blockNumber} created with ${transactions.length} transactions`);
         
-        // Publish event (like Hello World's publish counter changed)
+        // Publish events
         this.publish("blockchain", "blockAdded", { 
-            block: newBlock,
+            block: newBlock, 
+            blockNumber,
             totalBlocks: this.blocks.length 
         });
-    }
-    
-    executeTransaction(transactionData) {
-        console.log("BlockchainModel: Executing transaction...", transactionData);
         
+        this.publish("blockchain", "tick", {
+            blockNumber: this.currentBlockNumber,
+            pendingTransactions: this.pendingTransactions.length,
+            totalContracts: this.contracts.length
+        });
+    }
+
+    executeTransaction(data) {
+        console.log("BlockchainModel: Adding transaction to pending pool...", data);
+        
+        const transaction = {
+            id: `tx_${this.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            from: data.from,
+            to: data.to,
+            value: BigInt(data.value || 0),
+            type: data.type || 'eth_transfer',
+            timestamp: this.now(),
+            status: 'pending',
+            data: data.data || null,
+            gasUsed: data.gasUsed || 21000
+        };
+        
+        this.pendingTransactions.push(transaction);
+        
+        this.publish("blockchain", "transactionAdded", { 
+            transaction,
+            pendingCount: this.pendingTransactions.length 
+        });
+        
+        this.publish("blockchain", "tick", {
+            blockNumber: this.currentBlockNumber,
+            pendingTransactions: this.pendingTransactions.length,
+            totalContracts: this.contracts.length
+        });
+    }
+
+    executeTransactionInternal(transaction) {
         try {
-            // Simple transaction execution (transfer ETH)
-            const { from, to, value } = transactionData;
-            
             // Find accounts
-            const fromAccount = this.accounts.find(acc => acc.address === from);
-            const toAccount = this.accounts.find(acc => acc.address === to);
+            const fromAccount = this.accounts.find(acc => acc.address === transaction.from);
+            const toAccount = this.accounts.find(acc => acc.address === transaction.to);
             
-            if (!fromAccount || !toAccount) {
-                throw new Error("Account not found");
+            if (transaction.type === 'eth_transfer') {
+                if (fromAccount && fromAccount.balance >= transaction.value) {
+                    fromAccount.balance -= transaction.value;
+                    if (toAccount) {
+                        toAccount.balance += transaction.value;
+                    }
+                    transaction.status = 'executed';
+                    
+                    this.publish("blockchain", "transactionExecuted", { 
+                        transaction,
+                        fromBalance: fromAccount.balance,
+                        toBalance: toAccount?.balance
+                    });
+                } else {
+                    transaction.status = 'failed';
+                    this.publish("blockchain", "transactionFailed", { 
+                        transaction,
+                        reason: 'Insufficient balance'
+                    });
+                }
+            } else {
+                transaction.status = 'executed';
+                this.publish("blockchain", "transactionExecuted", { transaction });
             }
-            
-            if (fromAccount.balance < BigInt(value)) {
-                throw new Error("Insufficient balance");
-            }
-            
-            // Execute transfer
-            fromAccount.balance -= BigInt(value);
-            toAccount.balance += BigInt(value);
-            
-            // Create transaction record
-            const transaction = {
-                hash: this.generateTransactionHash(),
-                from,
-                to,
-                value,
-                status: "success",
-                timestamp: this.now() // Use Multisynq deterministic time
-            };
-            
-            // Add to pending transactions
-            this.pendingTransactions.push(transaction);
-            
-            console.log("BlockchainModel: Transaction executed successfully");
-            
-            // Publish transaction executed event
-            this.publish("blockchain", "transactionExecuted", { 
-                transaction,
-                fromBalance: fromAccount.balance.toString(),
-                toBalance: toAccount.balance.toString()
-            });
-            
         } catch (error) {
-            console.error("BlockchainModel: Transaction failed:", error.message);
-            
+            transaction.status = 'failed';
             this.publish("blockchain", "transactionFailed", { 
-                error: error.message,
-                transactionData 
+                transaction,
+                reason: error.message
             });
         }
     }
-    
-    deployContract(contractData) {
-        console.log("BlockchainModel: Deploying contract...", contractData);
+
+    deployContract(data) {
+        console.log("BlockchainModel: Deploying contract...", data);
         
         try {
-            const { bytecode, abi, contractName, from } = contractData;
-            
-            // Generate contract address
             const contractAddress = this.generateContractAddress();
-            
-            // Create contract instance
             const contract = {
+                name: data.contractName || 'UnknownContract',
                 address: contractAddress,
-                name: contractName,
-                bytecode,
-                abi,
-                deployedBy: from,
-                deployedAt: this.now() // Use Multisynq deterministic time
+                bytecode: data.bytecode || '',
+                abi: data.abi || [],
+                deployedAt: this.now(),
+                deployedBy: data.deployedBy || 'unknown',
+                isCompiled: !!data.bytecode,
+                sessionTime: Math.floor(this.now() / 1000)
             };
             
             this.contracts.push(contract);
             
             // Create deployment transaction
-            const transaction = {
-                hash: this.generateTransactionHash(),
-                from,
+            const deploymentTx = {
+                id: `deploy_${this.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                from: data.deployedBy || 'unknown',
                 to: contractAddress,
-                value: "0",
-                data: bytecode,
-                status: "success",
-                type: "contract_deployment",
-                timestamp: this.now() // Use Multisynq deterministic time
+                value: BigInt(0),
+                type: 'deployment',
+                timestamp: this.now(),
+                status: 'pending',
+                data: {
+                    contractName: contract.name,
+                    bytecode: contract.bytecode,
+                    abi: contract.abi
+                },
+                gasUsed: 500000
             };
             
-            this.pendingTransactions.push(transaction);
+            this.pendingTransactions.push(deploymentTx);
             
-            console.log(`BlockchainModel: Contract ${contractName} deployed at ${contractAddress}`);
+            console.log(`BlockchainModel: Contract ${contract.name} deployed at ${contractAddress}`);
+            console.log(`BlockchainModel: Bytecode length: ${contract.bytecode.length} characters`);
+            console.log(`BlockchainModel: Total contracts: ${this.contracts.length}`);
             
             this.publish("blockchain", "contractDeployed", { 
                 contract,
-                transaction 
+                totalContracts: this.contracts.length
+            });
+            
+            this.publish("blockchain", "tick", {
+                blockNumber: this.currentBlockNumber,
+                pendingTransactions: this.pendingTransactions.length,
+                totalContracts: this.contracts.length
             });
             
         } catch (error) {
-            console.error("BlockchainModel: Contract deployment failed:", error.message);
-            
+            console.error("BlockchainModel: Contract deployment failed:", error);
             this.publish("blockchain", "deploymentFailed", { 
                 error: error.message,
-                contractData 
+                contractName: data.contractName
             });
         }
     }
-    
-    handleCompiledContract(compilationData) {
-        // Receive compiled contract from CompilationManager
-        console.log("BlockchainModel: Received compiled contract", compilationData);
+
+    handleCompiledContract(data) {
+        console.log("BlockchainModel: Received compiled contract", data);
         
-        const { bytecode, abi, contractName } = compilationData;
-        
-        // Store compiled contract (ready for deployment)
-        this.publish("contract", "readyForDeployment", { 
-            contractName,
-            bytecode,
-            abi,
-            canDeploy: true
-        });
+        try {
+            // Store compilation result for potential deployment
+            const compilationResult = {
+                contractName: data.contractName,
+                bytecode: data.bytecode,
+                abi: data.abi,
+                metadata: data.metadata,
+                compiledAt: this.now(),
+                requestId: data.requestId
+            };
+            
+            this.publish("contract", "readyForDeployment", compilationResult);
+            
+        } catch (error) {
+            console.error("BlockchainModel: Error handling compiled contract:", error);
+            this.publish("compilation", "error", { 
+                error: error.message,
+                contractName: data.contractName
+            });
+        }
     }
-    
+
     heartbeat() {
-        // Increment heartbeat counter
         this.heartbeatCount++;
         
-        // Calculate model hash for synchronization verification
-        const modelState = {
-            blocks: this.blocks.length,
-            pendingTx: this.pendingTransactions.length,
-            contracts: this.contracts.length,
-            balances: this.accounts.map(acc => acc.balance.toString())
-        };
+        const modelHash = this.calculateModelHash();
         
-        const modelHash = this.calculateModelHash(modelState);
-        
-        // Publish heartbeat with synchronization data
         this.publish("system", "heartbeat", {
             count: this.heartbeatCount,
-            modelHash: modelHash,
-            timestamp: this.now()
+            sessionTime: Math.floor(this.now() / 1000),
+            modelHash: modelHash
         });
         
         // Schedule next heartbeat
         this.future(1000).heartbeat();
     }
-    
+
     autoMineBlock() {
-        // Auto-mine blocks with pending transactions (like Hello World's tick)
         if (this.pendingTransactions.length > 0) {
-            console.log(`BlockchainModel: Auto-mining block with ${this.pendingTransactions.length} pending transactions`);
-            this.createBlock();
+            console.log("BlockchainModel: Auto-mining block with pending transactions...");
+            this.createBlock({ miner: "auto_miner" });
         }
         
-        // Publish blockchain status (like Hello World's tick publish)
-        this.publish("blockchain", "tick", { 
-            blockNumber: this.currentBlockNumber,
-            pendingTransactions: this.pendingTransactions.length,
-            timestamp: this.now() // Use Multisynq deterministic time
-        });
+        // Schedule next auto-mine
+        this.future(15000).autoMineBlock();
+    }
+
+    calculateModelHash() {
+        // Create a deterministic hash based on key model state
+        const modelState = {
+            blockCount: this.blocks.length,
+            contractCount: this.contracts.length,
+            accountBalances: this.accounts.map(acc => ({ 
+                address: acc.address, 
+                balance: acc.balance.toString() 
+            })),
+            pendingTxCount: this.pendingTransactions.length,
+            currentBlockNumber: this.currentBlockNumber
+        };
         
-        // Schedule next auto-mine (like Hello World's future tick)
-        this.future(10000).autoMineBlock();
-    }
-    
-    // Utility methods
-    generateBlockHash() {
-        return "0x" + Math.random().toString(16).substr(2, 64).padStart(64, '0');
-    }
-    
-    generateTransactionHash() {
-        return "0x" + Math.random().toString(16).substr(2, 64).padStart(64, '0');
-    }
-    
-    generateContractAddress() {
-        return "0x" + Math.random().toString(16).substr(2, 40).padStart(40, '0');
-    }
-    
-    calculateModelHash(modelState) {
-        // Simple hash calculation for synchronization verification
         const stateString = JSON.stringify(modelState);
+        return this.simpleHash(stateString);
+    }
+
+    generateBlockHash(blockNumber, timestamp, parentHash, transactions) {
+        const data = `${blockNumber}${timestamp}${parentHash}${JSON.stringify(transactions)}`;
+        return "0x" + this.simpleHash(data);
+    }
+
+    generateContractAddress() {
+        const timestamp = this.now();
+        const random = Math.random().toString(36).substr(2, 9);
+        return `0x${this.simpleHash(timestamp + random).substring(0, 40)}`;
+    }
+
+    simpleHash(str) {
         let hash = 0;
-        for (let i = 0; i < stateString.length; i++) {
-            const char = stateString.charCodeAt(i);
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+            hash = hash & hash; // Convert to 32-bit integer
         }
         return Math.abs(hash).toString(16).padStart(8, '0');
     }
-    
-    getLastBlock() {
-        return this.blocks[this.blocks.length - 1];
-    }
-    
-    // Getter methods for view access (read-only)
+
+    // Getter methods for React components
     getBlocks() {
         return this.blocks;
     }
-    
-    getAccounts() {
-        return this.accounts;
-    }
-    
+
     getContracts() {
         return this.contracts;
     }
-    
+
+    getAccounts() {
+        return this.accounts;
+    }
+
     getPendingTransactions() {
         return this.pendingTransactions;
     }
+
+    getCurrentBlockNumber() {
+        return this.currentBlockNumber;
+    }
 }
 
-// Register the model (exactly like Hello World)
-BlockchainModel.register("BlockchainModel"); 
+// Register the model (exactly like Hello World and our test environment)
+BlockchainModel.register("BlockchainModel");
+
+// Export for both ES6 and CommonJS
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = BlockchainModel;
+} else if (typeof window !== 'undefined') {
+    window.BlockchainModel = BlockchainModel;
+}
+
+export default BlockchainModel; 

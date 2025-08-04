@@ -20,6 +20,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { Transaction } from '../../src/blockManager';
 import { formatEther } from 'ethers';
+import { formatHash, formatAddress, formatId } from '../../src/utils/formatters';
 
 interface DeployedContract {
   address: string;
@@ -224,7 +225,7 @@ export default function TransactionDetailsModal({
           <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'start' }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>ID:</Typography>
             <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-              {transaction.id}
+              {formatId(transaction.id)}
             </Typography>
             
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Status:</Typography>
@@ -258,7 +259,7 @@ export default function TransactionDetailsModal({
               <>
                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>From:</Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                  {transaction.from}
+                  {formatAddress(transaction.from)}
                 </Typography>
               </>
             )}
@@ -267,7 +268,7 @@ export default function TransactionDetailsModal({
               <>
                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>To:</Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                  {transaction.to}
+                  {formatAddress(transaction.to)}
                 </Typography>
               </>
             )}
@@ -288,7 +289,7 @@ export default function TransactionDetailsModal({
               📝 Contract Address
             </Typography>
             <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-              {transaction.contractAddress}
+              {formatAddress(transaction.contractAddress)}
             </Typography>
           </Paper>
         )}
@@ -302,7 +303,7 @@ export default function TransactionDetailsModal({
             <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'start' }}>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Address:</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {transaction.to}
+                {formatAddress(transaction.to)}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Initial Balance:</Typography>
               <Typography variant="body2">{formatEther(transaction.value)} ETH</Typography>
@@ -324,11 +325,11 @@ export default function TransactionDetailsModal({
             <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'start' }}>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>From:</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {transaction.from}
+                {formatAddress(transaction.from)}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>To:</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {transaction.to}
+                {formatAddress(transaction.to)}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Amount:</Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
@@ -347,11 +348,11 @@ export default function TransactionDetailsModal({
             <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'start' }}>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>From Contract:</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {transaction.from}
+                {formatAddress(transaction.from)}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>To Contract:</Typography>
               <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {transaction.to}
+                {formatAddress(transaction.to)}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Function:</Typography>
               <Typography variant="body2">{transaction.functionName}</Typography>
@@ -564,10 +565,10 @@ export default function TransactionDetailsModal({
                           Event #{index + 1}
                         </Typography>
                         <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          Address: {log.address}
+                          Address: {formatAddress(log.address)}
                         </Typography>
                         <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          Topics: {log.topics.join(', ')}
+                          Topics: {log.topics.map(t => formatHash(t)).join(', ')}
                         </Typography>
                         <Typography variant="body2">
                           Data: 

@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { BlockManager } from '../../src/blockManager'
+import { useMultisynq } from '../../src/components/YZProvider'
 
 interface TransferModalProps {
   open: boolean
@@ -21,22 +22,29 @@ interface TransferModalProps {
 }
 
 export default function TransferModal({ open, onClose, blockManager }: TransferModalProps) {
+  const { blockchainState, publish } = useMultisynq()
   const [fromAddress, setFromAddress] = useState('')
   const [toAddress, setToAddress] = useState('')
   const [amount, setAmount] = useState('')
   const [accounts, setAccounts] = useState<any[]>([])
   const [error, setError] = useState('')
 
+  // Only update accounts when blockchainState changes
+  useEffect(() => {
+    if (blockchainState?.accounts) {
+      setAccounts(blockchainState.accounts)
+    }
+  }, [blockchainState])
+
+  // Only reset form fields when dialog is opened
   useEffect(() => {
     if (open) {
-      const accountList = blockManager.getAccounts()
-      setAccounts(accountList)
       setFromAddress('')
       setToAddress('')
       setAmount('')
       setError('')
     }
-  }, [open, blockManager])
+  }, [open])
 
   const handleTransfer = async () => {
     if (!fromAddress || !toAddress || !amount) {
@@ -45,13 +53,23 @@ export default function TransferModal({ open, onClose, blockManager }: TransferM
     }
 
     try {
-      const transferAmount = BigInt(amount)
-      if (transferAmount <= 0) {
+      const transferAmount = amount
+      if (BigInt(transferAmount) <= 0) {
         setError('Amount must be greater than 0')
         return
       }
 
-      await blockManager.transferETH(fromAddress, toAddress, transferAmount)
+      // Publish transfer request through Multisynq
+      const transferData = {
+        from: fromAddress,
+        to: toAddress,
+        value: transferAmount,
+        type: 'eth_transfer'
+      }
+      
+      console.log("TransferModal: Publishing ETH transfer through Multisynq:", transferData)
+      publish('blockchain', 'executeTransaction', transferData)
+      
       onClose()
     } catch (error: any) {
       console.error('Error transferring ETH:', error)
@@ -72,7 +90,7 @@ export default function TransferModal({ open, onClose, blockManager }: TransferM
           >
             {accounts.map((account) => (
               <MenuItem key={account.address} value={account.address}>
-                {account.address} (Balance: {account.balance.toString()} wei)
+                {account.address} (Balance: {account.balance?.toString() || '0'} wei)
               </MenuItem>
             ))}
           </Select>
@@ -86,7 +104,7 @@ export default function TransferModal({ open, onClose, blockManager }: TransferM
           >
             {accounts.map((account) => (
               <MenuItem key={account.address} value={account.address}>
-                {account.address} (Balance: {account.balance.toString()} wei)
+                {account.address} (Balance: {account.balance?.toString() || '0'} wei)
               </MenuItem>
             ))}
           </Select>
