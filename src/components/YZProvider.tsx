@@ -116,8 +116,12 @@ export const YZProvider: React.FC<YZProviderProps> = ({ children }) => {
 
   const loadBlockchainView = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
+      // Determine the correct base path for the BlockchainView.js file
+      const basePath = window.location.pathname.includes('/yz-eth/') ? '/yz-eth' : '';
+      const viewPath = `${basePath}/BlockchainView.js`;
+      
       // Check if view script is already loaded
-      const existingScript = document.querySelector('script[src="/BlockchainView.js"]');
+      const existingScript = document.querySelector(`script[src="${viewPath}"]`);
       if (existingScript) {
         console.log("MultisynqProvider: BlockchainView script already in DOM, waiting...");
         existingScript.addEventListener('load', () => resolve());
@@ -126,7 +130,7 @@ export const YZProvider: React.FC<YZProviderProps> = ({ children }) => {
       }
 
       const script = document.createElement('script');
-      script.src = '/BlockchainView.js';
+      script.src = viewPath;
       script.onload = () => {
         console.log("MultisynqProvider: BlockchainView loaded");
         resolve();
