@@ -389,6 +389,74 @@ User clicks "Deploy"
 
 The message structure ensures that all participants maintain perfect synchronization while keeping bandwidth usage reasonable for real-time collaboration scenarios.
 
+### 🔍 **Contract Complexity Analysis: Why Some Contracts Are Larger**
+
+Different contract types produce significantly different payload sizes. Here's a detailed comparison:
+
+#### **📊 Simple vs Complex Contract Comparison**
+
+| **Metric** | **Calculator** (Simple) | **Token Events** (Complex) | **Difference** |
+|------------|-------------------------|----------------------------|----------------|
+| **Total Message Size** | 2.14 KB | 24.11 KB | **+1026%** |
+| **Bytecode** | 0.88 KB | 17.04 KB | **+1843%** |
+| **ABI** | 0.62 KB | 3.86 KB | **+525%** |
+| **Source Code** | 0.40 KB | 2.96 KB | **+638%** |
+| **Functions** | 3 functions | 20 functions | **+567%** |
+| **Code Lines** | 16 lines | 83 lines | **+419%** |
+
+#### **💡 Why Token Events Contract Is 10x Larger**
+
+**1. Bytecode Complexity (+1843% increase)**
+- **Full ERC20 Implementation**: Complete token standard with all required functions
+- **State Management**: Complex mappings (`balanceOf`, `allowance`), total supply tracking
+- **Multiple Functions**: `transfer`, `approve`, `mint`, `burn`, `transferFrom`, etc.
+- **Event Emission Logic**: 5 different events with indexed parameters
+- **Access Control**: Modifiers, paused state, ownership management
+- **Error Handling**: Comprehensive `require` statements and validation
+
+**2. ABI Complexity (+525% increase)**
+- **20 Functions vs 3**: Complete ERC20 interface plus custom functions
+- **5 Events**: `Transfer`, `Approval`, `TokensMinted`, `TokensBurned`, `EmergencyStop`
+- **Complex Parameters**: Nested structures, indexed event fields, multiple overloads
+- **State Variables**: Public getters for `name`, `symbol`, `decimals`, `totalSupply`, etc.
+
+**3. Source Code Size (+638% increase)**
+- **Comprehensive Implementation**: Full-featured token contract vs simple calculator
+- **Business Logic**: Token economics, pause functionality, minting/burning
+- **Documentation**: Detailed comments and SPDX license headers
+- **Security Features**: Overflow protection, authorization checks
+
+#### **⚡ Optimization Strategies for Large Contracts**
+
+**For Development (Immediate)**:
+- ✅ **Source Code Exclusion**: Don't transmit source in production (save ~3 KB)
+- ✅ **ABI Compression**: Use compact field names and reference types (save ~1 KB)
+- ✅ **Bytecode Optimization**: Enable Solidity optimizer (save ~5 KB)
+
+**For Production (Future)**:
+- 🔄 **Binary Encoding**: Replace hex strings with binary (save ~8 KB)
+- 🔄 **Delta Compression**: Only send differences for similar contracts
+- 🔄 **Reference Storage**: Store common ABIs once, reference by hash
+
+#### **🌐 Real-Time Performance Impact**
+
+Even with large contracts like Token Events:
+- **Network Transfer**: 0.197 seconds (1 Mbps) - still very responsive
+- **Memory Usage**: ~36 KB per deployment (minimal impact)
+- **User Experience**: No noticeable delay in real-time synchronization
+- **Bandwidth**: 24 KB per participant (acceptable for collaboration)
+
+#### **📈 Contract Size Guidelines**
+
+| **Contract Type** | **Typical Size** | **Real-Time Suitability** |
+|------------------|------------------|---------------------------|
+| **Simple Logic** | 2-5 KB | ✅ Excellent |
+| **Standard Tokens** | 20-30 KB | ✅ Very Good |
+| **Complex DeFi** | 50-100 KB | ⚠️ Good (slight delay) |
+| **Large Systems** | 100+ KB | ❌ Consider optimization |
+
+The Token Events contract, despite being 10x larger than Calculator, still provides excellent real-time collaboration performance at 24.11 KB total payload size.
+
 ## 🛠️ Technology Stack
 
 ### **Frontend**
