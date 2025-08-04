@@ -4,42 +4,52 @@
 
 # YZ ETH Blockchain Simulator
 
-[![Version](https://img.shields.io/badge/version-0.1.15-blue.svg)](https://github.com/YZ-social/yz-eth)
+[![Version](https://img.shields.io/badge/version-0.1.85-blue.svg)](https://github.com/YZ-social/yz-eth)
 [![License](https://img.shields.io/badge/license-MPL--2.0-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json)
 [![Deploy](https://github.com/YZ-social/yz-eth/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/YZ-social/yz-eth/actions)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://yz-social.github.io/yz-eth/)
 
-A **web-based Solidity execution environment** using EthereumJS VM that provides a complete blockchain simulation experience. YZ-ETH allows developers to write, compile, deploy, and interact with smart contracts in a fully simulated Ethereum environment—all running locally in your browser.
+A **real-time collaborative Solidity execution environment** using EthereumJS VM that provides a complete blockchain simulation experience. YZ-ETH allows multiple developers to simultaneously write, compile, deploy, and interact with smart contracts in a fully simulated Ethereum environment with **instant synchronization** across all participants—all running in your browser using the Multisynq real-time collaboration framework.
 
 ## 🎯 What is YZ-ETH?
 
-YZ-ETH is an educational and development tool that simulates a complete Ethereum blockchain environment without requiring any external blockchain connection. It's perfect for:
+YZ-ETH is a **real-time collaborative** educational and development tool that simulates a complete Ethereum blockchain environment without requiring any external blockchain connection. Using the Multisynq framework, all blockchain state is **instantly synchronized** across multiple users in the same session. It's perfect for:
 
-- **Learning Solidity**: Practice smart contract development in a safe, local environment
-- **Rapid Prototyping**: Test contract logic quickly without gas costs or network delays
-- **Educational Purposes**: Understand blockchain mechanics and smart contract interactions
-- **Development Testing**: Debug contracts before deploying to real networks
+- **Collaborative Learning**: Multiple students can work together on the same blockchain in real-time
+- **Team Development**: Developers can collaboratively test and debug smart contracts
+- **Live Teaching**: Instructors can demonstrate blockchain concepts with students seeing changes instantly
+- **Rapid Prototyping**: Test contract logic with teammates without gas costs or network delays
+- **Educational Purposes**: Understand blockchain mechanics with shared, synchronized state
+- **Development Testing**: Debug contracts collaboratively before deploying to real networks
 
 ## ✨ Key Features
 
+### 🌐 **Real-Time Collaboration**
+- **Multisynq Integration**: All blockchain state synchronized instantly across multiple users
+- **Session-Based**: Join sessions using simple session names and passwords
+- **Live Updates**: See other participants' contract deployments, transactions, and account changes in real-time
+- **Collaborative Blockchain**: Single shared blockchain state among all session participants
+
 ### 🔧 **Smart Contract Development**
-- **Code Editor**: Syntax-highlighted Solidity editor with auto-completion and persistent code state
+- **Code Editor**: Syntax-highlighted Solidity editor with persistent code state
 - **Real-time Compilation**: Instant feedback on compilation errors
+- **Deploy-Only Workflow**: Streamlined deployment process (Deploy & Run removed for better UX)
 - **Multiple Contract Support**: Deploy and manage multiple contracts simultaneously
 - **Built-in Examples**: Pre-loaded contract templates for learning (Basic, Data Structures, OOP, Tokens, Events)
 
-### ⚡ **Blockchain Simulation**
-- **Complete EVM Environment**: Full Ethereum Virtual Machine compatibility
-- **Block Management**: Real blockchain block structure with transactions
-- **Gas Tracking**: Accurate gas usage calculation and reporting with transaction numbers
-- **Transaction History**: Complete audit trail with interactive transaction tiles
+### ⚡ **Collaborative Blockchain Simulation**
+- **Complete EVM Environment**: Full Ethereum Virtual Machine compatibility with shared state
+- **Real-time Block Management**: Blockchain blocks synchronized across all session participants
+- **Gas Tracking**: Accurate gas usage calculation and reporting shared among users
+- **Live Transaction History**: Complete audit trail with interactive transaction tiles, updated instantly for all users
+- **Pending Transaction Queue**: Visual pending transactions that all users can see before mining
 
-### 💰 **Account Management**
-- **Multi-account Support**: Create and manage multiple Ethereum accounts
-- **ETH Transfers**: Send ETH between accounts with full transaction tracking
-- **Balance Tracking**: Real-time account balance updates
-- **Private Key Management**: Secure key generation and storage
+### 💰 **Collaborative Account Management**
+- **Shared Account Pool**: All session participants share the same set of Ethereum accounts
+- **Real-time Balance Updates**: Account balances update instantly across all users when transfers occur
+- **ETH Transfers**: Send ETH between accounts with full transaction tracking visible to all
+- **Synchronized Account Creation**: New accounts created by any user appear for all session participants
 
 ### 🔄 **Contract Interaction**
 - **Function Execution**: Call any contract function with custom parameters via modal dialogs
@@ -47,13 +57,14 @@ YZ-ETH is an educational and development tool that simulates a complete Ethereum
 - **Event Logging**: Monitor contract events and logs within transaction details
 - **ABI Detection**: Automatic contract interface recognition with function signatures
 
-### 🎨 **Modern User Interface**
+### 🎨 **Modern Collaborative Interface**
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Material-UI Components**: Clean, professional interface with consistent styling
-- **Real-time Updates**: Live blockchain state monitoring via transaction slider bar
+- **Real-time Session Status**: Live session information showing connected participants
 - **Intuitive Navigation**: Streamlined two-tab interface (Code Editor + Accounts)
-- **Interactive Transaction Tiles**: Drag-to-scroll transaction history with click-for-details
-- **Persistent State**: Code editor content persists across tab switches
+- **Interactive Transaction Slider**: Horizontal slider bar with executed (green) and pending (orange) transactions
+- **Auto-scroll to Latest**: Automatically shows most recent transactions when new ones are added
+- **Live Synchronization Indicator**: Visual feedback showing real-time collaboration status
 
 ## 🚀 Quick Start
 
@@ -119,44 +130,52 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ## 📖 How to Use
 
-### 1. **Writing Smart Contracts**
+### 1. **Joining a Session**
 
-1. Open the **Code Editor** (default landing page)
+1. Open YZ-ETH in your browser
+2. Enter a **session name** (e.g., "my-project") - all participants use the same name
+3. Enter the **session password** (default: "password")
+4. Join the session - you'll see any existing blockchain state from other participants
+
+### 2. **Writing Smart Contracts**
+
+1. Navigate to the **Code Editor** tab
 2. Write your Solidity code or select from built-in examples
-3. Click **"Deploy Only"** to deploy without execution
-4. Click **"Deploy & Run"** to deploy and execute the main function
+3. Click **"Deploy"** to deploy your contract to the shared blockchain
+4. All other session participants will instantly see your deployed contract
 5. View compilation results and deployment status in the output panel
 
-### 2. **Monitoring Blockchain Activity**
+### 3. **Monitoring Collaborative Blockchain Activity**
 
-- **Transaction Slider Bar**: View all transactions in real-time at the bottom of the screen
-- **Current Block Info**: Monitor block state in the sidebar
+- **Transaction Slider Bar**: View all transactions from all participants in real-time at the bottom
+- **Live Session Status**: Monitor session info showing blocks, accounts, contracts, and pending transactions
 - **Transaction Details**: Click any transaction tile to view detailed information
-- **Event Logs**: View contract events within each transaction's details
+- **Real-time Updates**: Watch as other participants' actions appear instantly
 
-### 3. **Interacting with Contracts**
+### 4. **Interacting with Contracts**
 
-1. After deploying a contract, find it in the **Transaction Slider Bar**
-2. Click the **"Execute"** button on deployment tiles
-3. Select a function from the dropdown menu
+1. After any participant deploys a contract, find it in the **Transaction Slider Bar**
+2. Click the **contract name** button on deployment tiles (green tiles)
+3. Select a function from the dropdown menu in the execution dialog
 4. Provide parameters (if needed) and execute
-5. View results in the transaction details modal
+5. All participants see the execution results and new transaction tiles
 
-### 4. **Managing Accounts**
+### 5. **Collaborative Account Management**
 
 1. Visit the **Accounts** tab
-2. View existing accounts and their ETH balances
-3. Click **"Create Account"** to generate new accounts
-4. Use the **Transfer** feature to send ETH between accounts
+2. View shared accounts and their ETH balances (same for all participants)
+3. Click **"Create Account"** - new accounts appear for all session members
+4. Use the **Transfer** feature - transfers are visible to all participants instantly
 
-### 5. **Transaction Management**
+### 6. **Real-Time Transaction Management**
 
-- **Transaction Tiles**: Each transaction is displayed as a tile with:
-  - Transaction number and gas usage
-  - Transaction type (deployment, execution, transfer)
-  - Status indicators (success/failure)
-  - Contract execution buttons for deployed contracts
-- **Drag Navigation**: Drag the transaction bar to scroll through transaction history
+- **Transaction Tiles**: Each transaction is displayed as a color-coded tile:
+  - **Green tiles**: Executed transactions (visible to all participants)
+  - **Orange tiles**: Pending transactions (waiting to be mined)
+  - Transaction type (Contract, Transaction, Transfer, Account)
+  - Status and details shared across all users
+- **Drag Navigation**: Drag the transaction bar to scroll through shared transaction history
+- **Auto-scroll**: Automatically shows latest transactions when new ones are added
 - **Click for Details**: Click any tile to view comprehensive transaction information
 
 ## 🏗️ Architecture Overview
@@ -165,38 +184,38 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     YZ-ETH Architecture v0.3.4             │
+│              YZ-ETH Collaborative Architecture v0.1.85     │
 ├─────────────────────┬─────────────────────┬─────────────────┤
-│   Frontend (React)  │   Core Engine       │   Blockchain    │
-│                     │                     │                 │
+│   Frontend (React)  │  Multisynq Model    │   Blockchain    │
+│                     │   (Shared State)    │                 │
 │ ┌─────────────────┐ │ ┌─────────────────┐ │ ┌─────────────┐ │
-│ │   App.tsx       │ │ │ SolidityExecutor│ │ │ EthereumJS  │ │
-│ │   - Navigation  │ │ │ - Compilation   │ │ │ VM & EVM    │ │
-│ │   - State Mgmt  │ │ │ - Deployment    │ │ │             │ │
-│ │   - Modals      │ │ │ - Execution     │ │ │             │ │
+│ │   App.tsx       │ │ │ BlockchainModel │ │ │ EthereumJS  │ │
+│ │   - Navigation  │ │ │ - Replicated    │ │ │ VM & EVM    │ │
+│ │   - YZ Provider │ │ │ - Pub/Sub Msgs  │ │ │ (Shared)    │ │
+│ │   - Modals      │ │ │ - Deterministic │ │ │             │ │
 │ └─────────────────┘ │ └─────────────────┘ │ │             │ │
 │                     │                     │ │             │ │
 │ ┌─────────────────┐ │ ┌─────────────────┐ │ │             │ │
-│ │  CodeEditor     │ │ │  BlockManager   │ │ │             │ │
+│ │  CodeEditor     │ │ │  Live Sync:     │ │ │             │ │
 │ │  - Ace Editor   │ │ │  - Transactions │ │ │             │ │
 │ │  - Examples     │ │ │  - Accounts     │ │ │             │ │
-│ │  - Compilation  │ │ │  - Block State  │ │ │             │ │
-│ │  - Persist Code │ │ │  - Event Logs   │ │ │             │ │
+│ │  - Deploy Only  │ │ │  - Contracts    │ │ │             │ │
+│ │  - Multisynq    │ │ │  - Pending TX   │ │ │             │ │
 │ └─────────────────┘ │ └─────────────────┘ │ └─────────────┘ │
 │                     │                     │                 │
 │ ┌─────────────────┐ │ ┌─────────────────┐ │ ┌─────────────┐ │
-│ │TransactionSlider│ │ │   Solc Worker   │ │ │  Web Worker │ │
-│ │ - Tile Display  │ │ │ - Browser Comp. │ │ │  (Isolated) │ │
-│ │ - Drag Scroll   │ │ │ - Async Build   │ │ │             │ │
-│ │ - Click Details │ │ │ - Error Handle  │ │ │             │ │
-│ │ - Contract Exec │ │ └─────────────────┘ │ └─────────────┘ │
+│ │ YZSliderBar     │ │ │ CompilationMgr  │ │ │ Multisynq   │ │
+│ │ - Live Updates  │ │ │ - External      │ │ │ Framework   │ │
+│ │ - Green/Orange  │ │ │ - Web Worker    │ │ │ - Sessions  │ │
+│ │ - Auto-scroll   │ │ │ - Pub Results   │ │ │ - Real-time │ │
+│ │ - Shared State  │ │ └─────────────────┘ │ └─────────────┘ │
 │ └─────────────────┘ │                     │                 │
 │                     │                     │                 │
 │ ┌─────────────────┐ │                     │                 │
-│ │AccountManagement│ │                     │                 │
-│ │ - ETH Balances  │ │                     │                 │
-│ │ - Transfers     │ │                     │                 │
-│ │ - Account Mgmt  │ │                     │                 │
+│ │AccountManagement│ │     Multi-User      │                 │
+│ │ - Shared Pool   │ │   Collaboration     │                 │
+│ │ - Live Updates  │ │    All Changes      │                 │
+│ │ - Sync Transfers│ │   Synchronized      │                 │
 │ └─────────────────┘ │                     │                 │
 │                     │                     │                 │
 │ ┌─────────────────┐ │                     │                 │
