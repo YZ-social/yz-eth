@@ -38,7 +38,8 @@ import {
 import React, { useState, useEffect } from 'react'
 import { BlockManager } from '../../src/blockManager'
 import { SolidityExecutor } from '../../src/solidityExecutor'
-import { AccountManagement, CodeEditor, TransferModal, TransactionDetailsModal } from './index'
+import { AccountManagement, CodeEditor, TransferModal } from './index'
+import TransactionDetailsModal from '../../src/components/TransactionDetailsModal'
 import packageJson from '../../package.json'
 import YZStatus from '../../src/components/YZStatus';
 import YZSliderBar from '../../src/components/YZSliderBar';

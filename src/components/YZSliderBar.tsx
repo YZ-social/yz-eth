@@ -22,7 +22,7 @@ import {
   PlayArrow as PlayArrowIcon
 } from '@mui/icons-material';
 import { useMultisynq } from './YZProvider';
-import TransactionDetailsModal from '../../public/components/TransactionDetailsModal';
+import TransactionDetailsModal from './TransactionDetailsModal';
 import { formatHash, formatAddress, formatId } from '../utils/formatters';
 
 // Constants for the slider bar
