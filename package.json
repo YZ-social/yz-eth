@@ -1,6 +1,6 @@
 {
   "name": "yz-eth",
-  "version": "0.1.88",
+  "version": "0.1.89",
   "description": "YZ ETH Blockchain Simulator - A web-based Solidity execution environment using EthereumJS VM",
   "keywords": [
     "ethereum",
