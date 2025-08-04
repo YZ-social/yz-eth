@@ -88,8 +88,12 @@ export const YZProvider: React.FC<YZProviderProps> = ({ children }) => {
 
   const loadBlockchainModel = async (): Promise<void> => {
     return new Promise((resolve, reject) => {
+      // Determine the correct base path for the BlockchainModel.js file
+      const basePath = window.location.pathname.includes('/yz-eth/') ? '/yz-eth' : '';
+      const modelPath = `${basePath}/BlockchainModel.js`;
+      
       // Check if model script is already loaded
-      const existingScript = document.querySelector('script[src="/BlockchainModel.js"]');
+      const existingScript = document.querySelector(`script[src="${modelPath}"]`);
       if (existingScript) {
         console.log("MultisynqProvider: BlockchainModel script already in DOM, waiting...");
         existingScript.addEventListener('load', () => resolve());
@@ -98,7 +102,7 @@ export const YZProvider: React.FC<YZProviderProps> = ({ children }) => {
       }
 
       const script = document.createElement('script');
-      script.src = '/BlockchainModel.js';
+      script.src = modelPath;
       script.onload = () => {
         console.log("MultisynqProvider: BlockchainModel loaded");
         resolve();
