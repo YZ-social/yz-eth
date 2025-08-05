@@ -5360,3 +5360,84 @@ publish('blockchain', 'contractDeployed', {
 - `AI_SESSION_CONTEXT.md` (updated timestamp and version)
 
 **Result**: Complete documentation of Multisynq deployment message structure, providing full transparency into payload composition, sizes, and performance characteristics for real-time collaborative blockchain development.
+
+---
+
+## Conversation 76: Documentation File References Enhancement - Version v0.1.90
+
+**Date**: August 4, 2025 at 03:13 PM
+**User Query**: "Please add reference to the DEPLOYMENT.md and the conversation.md files in the AI_SESSION_CONTEXT.md file with sufficient information about these for the AI model to understand what these are for and how they should be used."
+
+**Assistant Response**: Enhanced the AI_SESSION_CONTEXT.md file with comprehensive documentation file references to help future AI sessions understand the purpose, usage, and requirements for project documentation files.
+
+### **🔍 Technical Analysis**
+The user requested adding detailed references to key documentation files in the AI_SESSION_CONTEXT.md to improve AI context understanding and ensure proper documentation maintenance. This addresses the need for:
+
+1. **Clear documentation hierarchy** and file relationships
+2. **AI guidance** on when and how to use each documentation file
+3. **Maintenance requirements** for keeping documentation updated
+4. **Historical context** availability through conversation.md
+5. **Operational procedures** through DEPLOYMENT.md
+
+### **✅ Changes Made**
+
+#### **1. Added New Documentation Section**
+Created a new "📚 Documentation & Project Management Files" section in AI_SESSION_CONTEXT.md with detailed subsections for:
+
+**DEPLOYMENT.md Reference**:
+- **Purpose**: Complete deployment instructions and troubleshooting guide
+- **Usage scenarios**: Deployment issues, GitHub Pages setup, environment configuration
+- **Key contents**: GitHub Actions setup, manual procedures, troubleshooting, optimization
+- **When to reference**: Deployment failures, build issues, performance requests
+
+**conversation.md Reference**:
+- **Purpose**: Chronological record of ALL project conversations and decisions
+- **Usage requirements**: Context continuity, change history, user preferences
+- **Critical AI requirements**: Always read for context, always append after sessions, use append mode
+- **Update pattern**: Provided template format for consistent conversation logging
+
+#### **2. Enhanced AI Guidance**
+Added comprehensive guidance for future AI sessions including:
+
+- **File relationship diagram**: How documentation files work together
+- **AI best practices**: 5-step process for documentation management
+- **Update requirements**: Version numbers, timestamps, conversation logging
+- **Context usage**: When to reference each file type
+
+#### **3. Template and Format Standards**
+Provided standardized conversation entry template:
+```markdown
+## Conversation X: [Brief Title] - Version vX.X.X
+**Date**: [Current Date and Time]
+**User Query**: "[Exact user request]"
+**Assistant Response**: [Detailed summary]
+### **🔍 Technical Analysis**
+### **✅ Changes Made**  
+### **💡 Key Insights**
+**Files Modified**: [List]
+**Result**: [Outcome]
+```
+
+#### **4. Version and Timestamp Updates**
+- Updated `package.json`: v0.1.89 → v0.1.90
+- Updated `AI_SESSION_CONTEXT.md` timestamp: August 4, 2025 at 03:13 PM
+- Used `node get-current-time.js` for accurate timestamp
+
+### **💡 Key Insights**
+
+**Documentation Structure Importance**: Clear documentation hierarchy and AI guidance significantly improves consistency and quality of future development sessions.
+
+**Context Continuity**: The conversation.md file serves as crucial institutional memory, enabling AI sessions to understand past decisions and avoid repeated discussions.
+
+**Operational Efficiency**: DEPLOYMENT.md centralizes troubleshooting knowledge, reducing time spent diagnosing common deployment issues.
+
+**AI Workflow Standardization**: Providing explicit templates and requirements ensures consistent documentation maintenance regardless of which AI model handles future sessions.
+
+**Knowledge Transfer**: Comprehensive file descriptions enable smooth handoffs between different AI sessions while maintaining project continuity.
+
+**Files Modified**: 
+- `AI_SESSION_CONTEXT.md` (added comprehensive documentation file references section)
+- `package.json` (version v0.1.89 → v0.1.90)
+- `conversation.md` (appended this conversation entry)
+
+**Result**: AI_SESSION_CONTEXT.md now provides complete guidance for future AI sessions on how to use, maintain, and reference all project documentation files, ensuring consistent project management and knowledge continuity.

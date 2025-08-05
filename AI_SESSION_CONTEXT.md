@@ -1,8 +1,8 @@
 # AI Session Context - YZ-ETH Blockchain Simulator
 
 ## **Project Status**
-- **Current Version**: `v0.1.89`
-- **Last Updated**: August 4, 2025 at 11:30 AM
+- **Current Version**: `v0.1.90`
+- **Last Updated**: August 4, 2025 at 03:13 PM
 - **Phase**: 3 - React + Multisynq Integration (Complete)
 - **Status**: ✅ **OPERATIONAL** - All core features working with real-time synchronization
 
@@ -445,6 +445,95 @@ interface BlockchainAnalytics {
 - `@mui/material` - UI component library
 - `ace-builds` - Code editor functionality
 - `vitest` - Testing framework
+
+### **📚 Documentation & Project Management Files**
+
+#### **`DEPLOYMENT.md` - Comprehensive Deployment Guide**
+**Purpose**: Complete step-by-step deployment instructions and troubleshooting guide for YZ-ETH
+**Location**: Root directory (`./DEPLOYMENT.md`)
+**Usage by AI**: 
+- **Deployment Issues**: Reference this file when users have deployment problems
+- **GitHub Pages Setup**: Contains specific GitHub Actions and Pages configuration
+- **Environment Setup**: Detailed local development setup instructions
+- **Troubleshooting**: Common deployment errors and solutions
+- **Production Builds**: Build process documentation and optimization tips
+
+**Key Contents**:
+- GitHub Pages automatic deployment setup
+- Manual deployment procedures  
+- Environment variable configuration
+- Build troubleshooting and common errors
+- Performance optimization for production
+- Domain setup and custom deployment options
+
+**When to Reference**: 
+- User reports deployment failures
+- Questions about GitHub Pages setup
+- Build or production issues
+- Performance optimization requests
+- Custom domain deployment needs
+
+#### **`conversation.md` - Complete Project History Log**
+**Purpose**: Detailed chronological record of ALL conversations, changes, and decisions made in the project
+**Location**: Root directory (`./conversation.md`)
+**Usage by AI**:
+- **Context Continuity**: Understand previous decisions and implementation rationale
+- **Change History**: See what has been tried before and why certain approaches were chosen
+- **User Preferences**: Learn user's working style and preferences from past interactions
+- **Technical Decisions**: Reference past architectural discussions and trade-offs
+- **Update Requirements**: ALWAYS append new conversation summaries after each session
+
+**Key Contents**:
+- Chronological conversation entries (75+ conversations documented)
+- Technical implementation details and reasoning
+- User feedback and preference patterns
+- Architecture evolution and refactoring decisions
+- Feature additions and their motivations
+- Bug fixes and their root causes
+- Performance optimizations and their impact
+
+**Critical AI Requirements**:
+1. **ALWAYS read** `conversation.md` at the start of complex sessions for context
+2. **ALWAYS append** new conversation summaries at the end of each session
+3. **Use APPEND mode** (not search/replace) for speed as requested by user
+4. **Include technical details** of what was implemented and why
+5. **Reference conversation numbers** when discussing past decisions
+6. **Maintain chronological order** with dates and version numbers
+
+**Update Pattern**:
+```markdown
+## Conversation X: [Brief Title] - Version vX.X.X
+
+**Date**: [Current Date and Time]
+**User Query**: "[Exact user request]"
+
+**Assistant Response**: [Detailed summary of work done]
+
+### **🔍 Technical Analysis**
+[What was analyzed or investigated]
+
+### **✅ Changes Made**  
+[Specific files and modifications]
+
+### **💡 Key Insights**
+[Important discoveries or decisions]
+
+**Files Modified**: [List of changed files]
+**Result**: [Outcome and current status]
+```
+
+#### **How These Files Work Together**
+- **AI_SESSION_CONTEXT.md**: Current project status and immediate context
+- **conversation.md**: Historical context and decision rationale  
+- **DEPLOYMENT.md**: Operational procedures and troubleshooting
+- **README.md**: User-facing documentation and feature descriptions
+
+**AI Best Practices**:
+1. Start sessions by reviewing AI_SESSION_CONTEXT.md for current status
+2. Check conversation.md for relevant historical context if needed
+3. Reference DEPLOYMENT.md for any deployment-related questions
+4. Update all relevant documentation after making changes
+5. Always increment version numbers and update timestamps
 
 ---
 
