@@ -1122,8 +1122,7 @@ export default function App() {
   };
 
   const handleContractClick = (contract: any) => {
-    // Contract execution is now handled directly in the modal
-    // This function is kept for compatibility but no longer navigates
+    handleContractExecute(contract);
   };
 
   const handleContractExecute = (contract: any) => {
@@ -1186,7 +1185,57 @@ export default function App() {
   };
 
   const handleFunctionChange = (event: any) => {
-    setSelectedFunction(event.target.value);
+    const selectedValue = event.target.value;
+    setSelectedFunction(selectedValue);
+
+    // Auto-generate JSON array with sample data based on selected function
+    if (selectedContract && selectedValue) {
+      const functionInfo = selectedContract.functions.find(
+        (f: any) => f.signature === selectedValue,
+      );
+      
+      if (functionInfo && functionInfo.inputs && functionInfo.inputs.length > 0) {
+        const exampleArgs = functionInfo.inputs.map((input: any) => {
+          switch (input.type) {
+            case 'uint256':
+            case 'uint8':
+            case 'uint16':
+            case 'uint32':
+            case 'uint64':
+            case 'uint128':
+              return '1000';
+            case 'int256':
+            case 'int8':
+            case 'int16':
+            case 'int32':
+            case 'int64':
+            case 'int128':
+              return '1000';
+            case 'address':
+              return '"0x742d35cc6434c0532925a3b8d6ac6c3e98d9dc5b"';
+            case 'string':
+              return '"Hello World"';
+            case 'bool':
+              return 'true';
+            case 'bytes':
+            case 'bytes32':
+              return '"0xabcdef1234567890"';
+            default:
+              // Handle arrays and other complex types
+              if (input.type.includes('[]')) {
+                return '[]';
+              }
+              return 'null';
+          }
+        });
+        const generatedArgs = `[${exampleArgs.join(', ')}]`;
+        console.log('🎯 Auto-generated function arguments for', functionInfo.name + ':', generatedArgs);
+        setFunctionArgs(generatedArgs);
+      } else {
+        console.log('🎯 Function has no parameters, setting empty array for', functionInfo?.name || 'unknown function');
+        setFunctionArgs('[]');
+      }
+    }
   };
 
   const handleArgsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1662,13 +1711,13 @@ export default function App() {
                 disabled={!selectedFunction}
                 placeholder={
                   selectedFunction
-                    ? 'Enter arguments as JSON array, e.g., [123, "hello", true]'
-                    : 'Select a function first'
+                    ? 'Modify the auto-generated arguments or enter custom JSON array, e.g., [123, "hello", true]'
+                    : 'Select a function to auto-generate sample arguments'
                 }
                 helperText={
                   selectedFunction
-                    ? 'Enter arguments as a JSON array. Use quotes for strings and addresses.'
-                    : ''
+                    ? 'Arguments are auto-generated with sample data. Modify as needed. Use quotes for strings and addresses.'
+                    : 'Function arguments will be auto-populated with sample data when you select a function.'
                 }
               />
               
