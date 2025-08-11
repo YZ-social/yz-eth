@@ -1,11 +1,19 @@
 import {
   AccountBalanceWallet as AccountBalanceWalletIcon,
-  Code as CodeIcon,
+
   SwapHoriz as SwapHorizIcon,
   PlayArrow as PlayArrowIcon,
   Close as CloseIcon,
-  MenuBook as MenuBookIcon,
+
   ArrowDropDown as ArrowDropDownIcon,
+  Analytics as AnalyticsIcon,
+  History as HistoryIcon,
+  Storage as DeployedCodeIcon,
+
+  Folder as FolderIcon,
+
+  Terminal as TerminalIcon,
+  Clear as ClearIcon,
 } from '@mui/icons-material'
 import {
   AppBar,
@@ -34,6 +42,8 @@ import {
   Chip,
   CircularProgress,
   Menu,
+  Tab,
+  Tabs,
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { BlockManager } from '../../src/blockManager'
@@ -41,12 +51,12 @@ import { SolidityExecutor } from '../../src/solidityExecutor'
 import { AccountManagement, CodeEditor, TransferModal } from './index'
 import TransactionDetailsModal from '../../src/components/TransactionDetailsModal'
 import packageJson from '../../package.json'
-import YZStatus from '../../src/components/YZStatus';
+import { useMultisynq } from '../../src/components/YZProvider';
 import YZSliderBar from '../../src/components/YZSliderBar';
 import { formatHash, formatAddress, formatId } from '../../src/utils/formatters';
 import { Transaction } from '../../src/blockManager';
 
-const drawerWidth = 240
+const drawerWidth = 400
 
 // Example contracts data - moved from CodeEditor.tsx
 const exampleContracts = {
@@ -922,9 +932,9 @@ const getExecutor = () => {
 export default function App() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const [activeSection, setActiveSection] = useState('code')
   const blockManager = getBlockManager()
   const executor = getExecutor()
+  const { isLoading, isConnected, error, blockchainState, publish } = useMultisynq()
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [currentBlock, setCurrentBlock] = useState<any>(null);
@@ -948,8 +958,13 @@ export default function App() {
   const [isExecuting, setIsExecuting] = useState(false);
   // Code editor state - lifted up to persist across tab switches
   const [editorCode, setEditorCode] = useState('');
-  // Examples menu state
-  const [examplesAnchorEl, setExamplesAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Left panel tab state
+  const [leftPanelTab, setLeftPanelTab] = useState(0);
+  
+  // Console output state - moved from CodeEditor
+  const [consoleOutput, setConsoleOutput] = useState('');
+  const [consoleLoading, setConsoleLoading] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -1113,9 +1128,9 @@ export default function App() {
     setDeployedContracts(contracts);
   };
 
-  const handleSectionChange = (section: string) => {
-    setActiveSection(section)
-  }
+  const handleLeftPanelTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setLeftPanelTab(newValue);
+  };
 
   const handleCloseTransactionModal = () => {
     setSelectedTx(null);
@@ -1165,18 +1180,10 @@ export default function App() {
     });
   };
 
-  // Examples menu handlers
-  const handleExamplesClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setExamplesAnchorEl(event.currentTarget)
-  }
 
-  const handleExamplesClose = () => {
-    setExamplesAnchorEl(null)
-  }
 
   const handleExampleSelect = (contract: any) => {
     setEditorCode(contract.code)
-    handleExamplesClose()
   }
 
   // Contract execution dialog handlers
@@ -1342,157 +1349,545 @@ export default function App() {
     );
   };
 
-  const menuItems = [
-    { text: 'Code Editor', icon: <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 'bold' }}>{'{'}{'}'}</span>, section: 'code' },
-    { text: 'Accounts', icon: <AccountBalanceWalletIcon />, section: 'accounts' },
-  ]
+
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* Condensed AppBar positioned above the sidebar */}
+    <Box sx={{ display: 'flex', height: 'calc(100vh - 150px)', overflow: 'hidden' }}>
+      {/* Header */}
       <AppBar 
         position="fixed" 
         sx={{ 
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          width: drawerWidth,
-          left: 0,
+          backgroundColor: '#8B4513',
+          boxShadow: '0 2px 8px rgba(139, 69, 19, 0.1)',
         }}
       >
-        <Toolbar sx={{ minHeight: '48px !important', px: 1 }}>
-          <Typography variant="subtitle1" noWrap component="div" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
-            YZ ETH v{packageJson.version}
-          </Typography>
+        <Toolbar sx={{ minHeight: '60px !important', px: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{
+              width: 32,
+              height: 32,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#8B4513',
+              fontWeight: 700,
+              fontSize: '14px'
+            }}>
+              YZ
+            </Box>
+            <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
+              YZ ETH Studio v0.3.14
+            </Typography>
+          </Box>
+          <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Chip 
+              icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#28A745' }} />}
+              label="Network Active" 
+              size="small"
+              sx={{ backgroundColor: '#A0522D', color: '#FFFFFF', fontSize: '12px' }}
+            />
+
+
+          </Box>
         </Toolbar>
       </AppBar>
 
-
-
-      <Drawer
-        variant={isMobile ? 'temporary' : 'permanent'}
-        open={isMobile ? activeSection !== 'code' : true}
-        onClose={() => handleSectionChange('code')}
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
-        }}
-      >
-        <Toolbar sx={{ minHeight: '48px !important' }} />
-        <Box sx={{ overflow: 'auto', display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Examples Button */}
-          <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Button
-              variant="outlined"
-              onClick={handleExamplesClick}
-              sx={{
-                width: '100%',
-                borderStyle: 'dashed',
-                '&:hover': {
-                  borderStyle: 'solid',
-                },
-              }}
-              startIcon={<MenuBookIcon />}
-              endIcon={<ArrowDropDownIcon />}
-            >
-              Examples
-            </Button>
-            <Menu
-              anchorEl={examplesAnchorEl}
-              open={Boolean(examplesAnchorEl)}
-              onClose={handleExamplesClose}
-              PaperProps={{
-                style: {
-                  maxHeight: '400px',
-                  width: '300px',
-                },
-              }}
-            >
-              {Object.entries(exampleContracts).map(([category, contracts]) => (
-                <Box key={category}>
-                  <MenuItem disabled>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                      {category}
-                    </Typography>
-                  </MenuItem>
-                  {(contracts as any[]).map((contract) => (
-                    <MenuItem
-                      key={contract.name}
-                      onClick={() => handleExampleSelect(contract)}
-                      sx={{ pl: 3 }}
-                    >
-                      {contract.name}
-                    </MenuItem>
-                  ))}
-                </Box>
-              ))}
-            </Menu>
-          </Box>
-          <List>
-            {menuItems.map((item) => (
-              <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-                <ListItemButton
-                  selected={activeSection === item.section}
-                  onClick={() => handleSectionChange(item.section)}
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: isMobile ? 'initial' : 'initial',
-                    px: 2.5,
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: isMobile ? 3 : 'auto',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={item.text} sx={{ opacity: isMobile ? 1 : 1 }} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-          <Divider />
-
-          {/* Current Block Info removed as per user request */}
-
-          {/* YZ Logo */}
-          <Box
+      {/* Main Container */}
+      <Box sx={{ display: 'flex', width: '100%', height: '100%', mt: '60px' }}>
+        {/* Left Sidebar */}
+        <Box
+          sx={{
+            width: drawerWidth,
+            backgroundColor: '#FFFFFF',
+            borderRight: '1px solid #E5E5E5',
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0,
+          }}
+        >
+          {/* Panel Tabs */}
+          <Tabs
+            value={leftPanelTab}
+            onChange={handleLeftPanelTabChange}
+            variant="fullWidth"
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              py: 4,
-              px: 2,
-              mt: 2,
+              borderBottom: '1px solid #E5E5E5',
+              backgroundColor: '#F8F9FA',
+              '& .MuiTab-root': {
+                minHeight: 48,
+                fontSize: '12px',
+                fontWeight: 500,
+                textTransform: 'none',
+              },
+              '& .Mui-selected': {
+                backgroundColor: '#FFFFFF',
+                color: '#8B4513',
+              },
             }}
           >
-            <img
-              src={window.location.pathname.includes('/yz-eth/') ? '/yz-eth/yz.png' : '/yz.png'}
-              alt="YZ Logo"
-              style={{
-                width: '120px',
-                height: 'auto',
-                opacity: 0.3,
-                filter: 'grayscale(20%)',
-                transition: 'opacity 0.3s ease',
-              }}
-            />
+            <Tab label="Session" />
+            <Tab label="Accounts" />
+            <Tab label="Examples" />
+          </Tabs>
+
+          {/* Tab Content */}
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+            {leftPanelTab === 0 && (
+              <Box>
+                {/* Session Status */}
+                {isLoading && (
+                  <Paper sx={{ p: 2, mb: 2, bgcolor: '#F8F9FA', border: '1px solid #E5E5E5' }}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <CircularProgress size={20} sx={{ color: '#8B4513' }} />
+                      <Typography variant="body2" sx={{ color: '#8B4513' }}>
+                        Connecting to Multisynq session...
+                      </Typography>
+                    </Box>
+                  </Paper>
+                )}
+
+                {error && (
+                  <Paper sx={{ p: 2, mb: 2, bgcolor: '#fee', border: '1px solid #fcc', color: '#d32f2f' }}>
+                    <Typography variant="body2" fontWeight="bold">
+                      ❌ Multisynq Error: {error}
+                    </Typography>
+                  </Paper>
+                )}
+
+                {!isConnected && !isLoading && (
+                  <Paper sx={{ p: 2, mb: 2, bgcolor: '#fff8e1', border: '1px solid #ffcc02', color: '#f57c00' }}>
+                    <Typography variant="body2">
+                      ⚠️ Multisynq disconnected - attempting to reconnect...
+                    </Typography>
+                  </Paper>
+                )}
+
+                {isConnected && blockchainState && (
+                  <>
+                    {/* Session Status Header */}
+                    <Paper sx={{ p: 2, mb: 2, bgcolor: '#e8f5e8', border: '1px solid #4caf50' }}>
+                      <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#2e7d32' }}>
+                          🟢 YZ-ETH Multisynq Session Active
+                        </Typography>
+                        <Chip
+                          label={`💓 ${blockchainState.heartbeatCount}`}
+                          size="small"
+                          sx={{ 
+                            backgroundColor: '#8B4513', 
+                            color: '#FFFFFF', 
+                            fontWeight: 'bold',
+                            fontSize: '11px'
+                          }}
+                        />
+                      </Box>
+                      
+                      {/* Current Block Info */}
+                      <Typography variant="caption" sx={{ color: '#2e7d32', fontFamily: 'monospace' }}>
+                        Block #{blockchainState.currentBlockNumber} | Hash: {blockchainState.blocks.length > 0 ? formatHash(blockchainState.blocks[blockchainState.blocks.length - 1]?.hash) : 'N/A'}
+                      </Typography>
+                    </Paper>
+
+                    {/* Live Statistics Grid */}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#8B4513', mb: 2 }}>
+                      Live Network Statistics
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
+                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#F8F9FA', border: '1px solid #E5E5E5' }}>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#8B4513' }}>
+                          {blockchainState.blocks.length}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6C757D', textTransform: 'uppercase' }}>
+                          Blocks
+                        </Typography>
+                      </Paper>
+                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#F8F9FA', border: '1px solid #E5E5E5' }}>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#8B4513' }}>
+                          {blockchainState.accounts.length}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6C757D', textTransform: 'uppercase' }}>
+                          Accounts
+                        </Typography>
+                      </Paper>
+                      <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: '#F8F9FA', border: '1px solid #E5E5E5' }}>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#8B4513' }}>
+                          {blockchainState.contracts.length}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6C757D', textTransform: 'uppercase' }}>
+                          Contracts
+                        </Typography>
+                      </Paper>
+                      <Paper sx={{ 
+                        p: 2, 
+                        textAlign: 'center', 
+                        backgroundColor: blockchainState.pendingTransactions.length > 0 ? '#fff8e1' : '#F8F9FA',
+                        border: blockchainState.pendingTransactions.length > 0 ? '1px solid #ffcc02' : '1px solid #E5E5E5'
+                      }}>
+                        <Typography variant="h5" sx={{ 
+                          fontWeight: 700, 
+                          color: blockchainState.pendingTransactions.length > 0 ? '#f57c00' : '#8B4513' 
+                        }}>
+                          {blockchainState.pendingTransactions.length}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6C757D', textTransform: 'uppercase' }}>
+                          Pending
+                        </Typography>
+                      </Paper>
+                    </Box>
+
+                    {/* Gas Usage Info */}
+                    {blockchainState.blocks.length > 0 && (() => {
+                      const latestBlock = blockchainState.blocks[blockchainState.blocks.length - 1];
+                      if (latestBlock && latestBlock.gasUsed !== undefined && latestBlock.gasLimit !== undefined) {
+                        return (
+                          <Paper sx={{ p: 2, mb: 2, backgroundColor: '#F8F9FA', border: '1px solid #E5E5E5' }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#8B4513', mb: 1 }}>
+                              Gas Usage (Latest Block)
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#6C757D' }}>
+                              {latestBlock.gasUsed.toString()} / {latestBlock.gasLimit.toString()}
+                            </Typography>
+                          </Paper>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                    {/* Mine Block Button */}
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      disabled={blockchainState.pendingTransactions.length === 0}
+                      onClick={() => {
+                        console.log("Mining block manually...");
+                        publish('blockchain', 'createBlock', {});
+                      }}
+                      sx={{ 
+                        backgroundColor: blockchainState.pendingTransactions.length > 0 ? '#f57c00' : '#ccc',
+                        color: '#FFFFFF',
+                        '&:hover': { 
+                          backgroundColor: blockchainState.pendingTransactions.length > 0 ? '#ef6c00' : '#bbb' 
+                        },
+                        fontWeight: 'bold',
+                        py: 1.5,
+                        mb: 2
+                      }}
+                    >
+                      ⛏️ Mine Block {blockchainState.pendingTransactions.length > 0 ? `(${blockchainState.pendingTransactions.length})` : '(0)'}
+                    </Button>
+                  </>
+                )}
+
+                {/* Recent Activity */}
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#8B4513', mb: 2 }}>
+                  Recent Activity
+                </Typography>
+                <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
+                  {transactions.slice(-5).reverse().map((tx, index) => (
+                    <Box
+                      key={tx.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        p: 1,
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: '#F8F9FA' },
+                        mb: 1,
+                      }}
+                      onClick={() => setSelectedTx(tx)}
+                    >
+                      <Box sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 1,
+                        backgroundColor: tx.type === 'deployment' ? '#D2B48C' : 
+                                       tx.type === 'function_call' ? '#28A745' : '#17A2B8',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                      }}>
+                        {getTransactionTypeIcon(tx.type, tx)}
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '12px' }}>
+                          {tx.type === 'deployment' ? 'Contract Deployed' :
+                           tx.type === 'function_call' ? `${tx.functionName}()` :
+                           tx.type}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#6C757D' }}>
+                          {formatId(tx.id)} • {tx.status}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {leftPanelTab === 1 && (
+              <Box>
+                <AccountManagement blockManager={blockManager} />
+              </Box>
+            )}
+
+            {leftPanelTab === 2 && (
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#8B4513', mb: 2 }}>
+                  Example Contracts
+                </Typography>
+                <Box sx={{ overflow: 'auto', pb: 4 }}>
+                  {Object.entries(exampleContracts).map(([category, contracts]) => (
+                    <Box key={category} sx={{ mb: 2 }}>
+                      <Typography 
+                        variant="subtitle2" 
+                        sx={{ 
+                          fontWeight: 600, 
+                          color: '#8B4513', 
+                          mb: 1,
+                          fontSize: '14px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}
+                      >
+                        {category}
+                      </Typography>
+                      {(contracts as any[]).map((contract) => (
+                        <Box
+                          key={contract.name}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1.5,
+                            p: 1.5,
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            border: '1px solid #E5E5E5',
+                            mb: 1,
+                            '&:hover': { 
+                              backgroundColor: '#F8F9FA',
+                              borderColor: '#8B4513'
+                            },
+                          }}
+                          onClick={() => handleExampleSelect(contract)}
+                        >
+                          <Box sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 1,
+                            backgroundColor: '#8B4513',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            color: '#FFFFFF'
+                          }}>
+                            📄
+                          </Box>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '13px' }}>
+                              {contract.name}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#6C757D' }}>
+                              {contract.description || 'Example Solidity contract'}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
           </Box>
         </Box>
-      </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 0, pb: 20 }}>
-        {/* Add YZ Status at the top of all sections */}
-        <YZStatus />
-        
-        {activeSection === 'code' && <CodeEditor executor={executor} blockManager={blockManager} code={editorCode} setCode={setEditorCode} />}
-        {activeSection === 'accounts' && <AccountManagement blockManager={blockManager} />}
+        {/* Main Content Area */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Code Editor */}
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Button Bar */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              gap: 1, 
+              p: 1, 
+              borderBottom: '1px solid #E5E5E5',
+              backgroundColor: '#F8F9FA'
+            }}>
+              <Button
+                variant="contained"
+                startIcon={<PlayArrowIcon />}
+                onClick={async () => {
+                  setConsoleLoading(true);
+                  setConsoleOutput('');
+                  try {
+                    // First compile the contract using the executor
+                    const compiledContracts = await executor.compileSolidity(editorCode);
+                    if (compiledContracts.length === 0) {
+                      setConsoleOutput('❌ Compilation failed: No contracts found in the code');
+                      return;
+                    }
+
+                    // Get the first compiled contract
+                    const contract = compiledContracts[0];
+
+                    // Deploy the contract using Multisynq publish
+                    const deploymentData = {
+                      contractName: contract.contractName || 'UnnamedContract',
+                      bytecode: contract.bytecode,
+                      abi: contract.abi || [],
+                      from: "0x1234567890123456789012345678901234567890", // Default account
+                      sourceCode: editorCode
+                    };
+
+                    console.log("App: Publishing contract deployment through Multisynq:", deploymentData);
+                    publish('blockchain', 'deployContract', deploymentData);
+
+                    // Execute main function if it exists
+                    const mainFunction = contract.abi.find(
+                      (item: any) =>
+                        item.type === 'function' &&
+                        (item.name === 'main' || item.name === 'test' || item.name === 'run'),
+                    );
+
+                    if (mainFunction) {
+                      // Create execution request
+                      const executionData = {
+                        contractName: contract.contractName || 'UnnamedContract',
+                        functionName: mainFunction.name,
+                        functionArgs: [], // Empty args for main/test/run functions
+                        from: "0x1234567890123456789012345678901234567890",
+                        abi: contract.abi
+                      };
+
+                      console.log("App: Publishing contract execution through Multisynq:", executionData);
+                      publish('blockchain', 'executeTransaction', executionData);
+                      
+                      setConsoleOutput('🚀 Contract deployment & execution submitted to blockchain!\n⏳ Two publish events sent (deploy + execute)...\n💡 Click "Mine Block" in the status bar to process immediately, or wait up to 15 seconds for auto-mining.\n🔧 Main function "' + mainFunction.name + '" will be executed after deployment.');
+                    } else {
+                      setConsoleOutput('🚀 Contract deployment submitted to blockchain!\n⏳ Deploy event published...\n💡 Click "Mine Block" in the status bar to process immediately, or wait up to 15 seconds for auto-mining.\n📝 No main function found to execute.');
+                    }
+                  } catch (error: any) {
+                    setConsoleOutput('❌ Execution failed: ' + (error.message || 'An error occurred while deploying and executing the contract'));
+                  } finally {
+                    setConsoleLoading(false);
+                  }
+                }}
+                sx={{
+                  backgroundColor: '#8B4513',
+                  color: '#FFFFFF',
+                  '&:hover': {
+                    backgroundColor: '#A0522D',
+                  },
+                }}
+              >
+                Deploy
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<ClearIcon />}
+                onClick={() => {
+                  setEditorCode('');
+                  setConsoleOutput('');
+                }}
+                sx={{
+                  borderColor: '#8B4513',
+                  color: '#8B4513',
+                  '&:hover': {
+                    borderColor: '#A0522D',
+                    backgroundColor: 'rgba(139, 69, 19, 0.05)',
+                  },
+                }}
+              >
+                Clear
+              </Button>
+            </Box>
+            
+            {/* Editor Content */}
+            <Box sx={{ flex: 1, overflow: 'hidden' }}>
+              <CodeEditor 
+                executor={executor} 
+                blockManager={blockManager} 
+                code={editorCode} 
+                setCode={setEditorCode}
+                setConsoleOutput={setConsoleOutput}
+                setConsoleLoading={setConsoleLoading}
+              />
+            </Box>
+          </Box>
+
+          {/* Console at bottom */}
+          <Box
+            sx={{
+              height: 200,
+              borderTop: '1px solid #E5E5E5',
+              backgroundColor: '#1e1e1e',
+              display: 'flex',
+              flexDirection: 'column',
+              flexShrink: 0,
+            }}
+          >
+            <Box sx={{
+              backgroundColor: '#333',
+              color: '#FFFFFF',
+              p: 1,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: '12px',
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TerminalIcon sx={{ fontSize: 14 }} />
+                <Typography sx={{ fontSize: '12px' }}>Console</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  label={consoleLoading ? "WORKING" : "READY"}
+                  size="small"
+                  sx={{
+                    backgroundColor: consoleLoading ? '#FF9800' : '#28A745',
+                    color: '#FFFFFF',
+                    fontSize: '10px',
+                    height: 20,
+                  }}
+                />
+              </Box>
+            </Box>
+            <Box sx={{
+              flex: 1,
+              p: 2,
+              color: '#00ff00',
+              fontFamily: 'Monaco, Menlo, monospace',
+              fontSize: '12px',
+              lineHeight: 1.4,
+              overflow: 'auto',
+            }}>
+              {consoleLoading ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={16} sx={{ color: '#00ff00' }} />
+                  <span>Processing...</span>
+                </Box>
+              ) : (
+                <div style={{ whiteSpace: 'pre-wrap' }}>
+                  {consoleOutput || 'Console ready. Click "Deploy" to compile and deploy contracts.\n\n> Waiting for user input...'}
+                </div>
+              )}
+            </Box>
+          </Box>
+        </Box>
       </Box>
 
       {/* Fixed YZ Block Slider at bottom of page */}
       <YZSliderBar />
+
+
       
       {/* Transaction Details Modal */}
       <TransactionDetailsModal

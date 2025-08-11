@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YZ ETH Demo 1 - Card Layout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brown-primary: #8B4513;
+            --brown-secondary: #A0522D;
+            --brown-light: #D2B48C;
+            --brown-bg: #F5F5DC;
+            --white: #FFFFFF;
+            --gray-light: #F8F9FA;
+            --gray-medium: #6C757D;
+            --gray-dark: #343A40;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow: 0 2px 8px rgba(139, 69, 19, 0.1);
+            --shadow-hover: 0 4px 16px rgba(139, 69, 19, 0.15);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--brown-bg) 0%, var(--white) 100%);
+            color: var(--gray-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: var(--brown-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--brown-primary);
+            margin: 0;
+        }
+
+        .version {
+            background: var(--brown-light);
+            color: var(--brown-primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gray-light);
+            padding: 8px 16px;
+            border-radius: 24px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 24px;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .nav-section {
+            margin-bottom: 32px;
+        }
+
+        .nav-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--brown-bg);
+            color: var(--brown-primary);
+        }
+
+        .nav-item.active {
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .examples-btn {
+            width: 100%;
+            background: var(--brown-light);
+            color: var(--brown-primary);
+            border: 2px dashed var(--brown-secondary);
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .examples-btn:hover {
+            background: var(--brown-secondary);
+            color: var(--white);
+            border-style: solid;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .section-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .section-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .section-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--brown-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-content {
+            padding: 24px;
+        }
+
+        /* Code Editor */
+        .code-editor {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            color: #ffffff;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 400px;
+            overflow-x: auto;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .editor-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .editor-tab {
+            background: var(--gray-light);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .editor-tab.active {
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--brown-secondary);
+        }
+
+        .btn-secondary {
+            background: var(--gray-light);
+            color: var(--gray-dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-medium);
+            color: var(--white);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .panel-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: var(--brown-primary);
+            color: var(--white);
+            padding: 16px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        /* Transaction List */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .transaction-item:hover {
+            background: var(--gray-light);
+        }
+
+        .tx-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .tx-deployment {
+            background: var(--brown-light);
+        }
+
+        .tx-call {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .tx-info {
+            flex: 1;
+        }
+
+        .tx-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .tx-details {
+            font-size: 12px;
+            color: var(--gray-medium);
+        }
+
+        .tx-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-executed {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .status-pending {
+            background: var(--warning);
+            color: var(--gray-dark);
+        }
+
+        .status-failed {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        /* Blockchain Status */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 16px;
+            background: var(--gray-light);
+            border-radius: 12px;
+        }
+
+        .status-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--brown-primary);
+            margin-bottom: 4px;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: var(--gray-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 250px 1fr;
+                gap: 16px;
+            }
+            
+            .right-panel {
+                grid-column: 1 / -1;
+                grid-row: 3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .sidebar {
+                position: static;
+                order: 2;
+            }
+            
+            .right-panel {
+                order: 3;
+            }
+            
+            .header {
+                padding: 16px 20px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .section-header,
+            .section-content {
+                padding: 16px;
+            }
+        }
+
+        /* Syntax highlighting */
+        .keyword { color: #569CD6; }
+        .string { color: #CE9178; }
+        .comment { color: #6A9955; }
+        .function { color: #DCDCAA; }
+        .number { color: #B5CEA8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">YZ</div>
+                <div>
+                    <h1 class="title">YZ ETH</h1>
+                    <span class="version">v0.3.11</span>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>Blockchain Active</span>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="nav-section">
+                    <div class="nav-title">Navigation</div>
+                    <div class="nav-item active">
+                        <span class="material-icons nav-icon">code</span>
+                        <span>Code Editor</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="material-icons nav-icon">account_balance_wallet</span>
+                        <span>Accounts</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="material-icons nav-icon">history</span>
+                        <span>Transactions</span>
+                    </div>
+                    <div class="nav-item">
+                        <span class="material-icons nav-icon">deployed_code</span>
+                        <span>Contracts</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-title">Tools</div>
+                    <button class="examples-btn">
+                        <span class="material-icons">library_books</span>
+                        <span>Load Examples</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Code Editor Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <span class="material-icons">code</span>
+                            Solidity Editor
+                        </h2>
+                    </div>
+                    <div class="section-content">
+                        <div class="editor-toolbar">
+                            <div class="editor-tabs">
+                                <div class="editor-tab active">Contract.sol</div>
+                                <div class="editor-tab">+ New</div>
+                            </div>
+                            <div class="editor-actions">
+                                <button class="btn btn-secondary">
+                                    <span class="material-icons">build</span>
+                                    Compile
+                                </button>
+                                <button class="btn btn-primary">
+                                    <span class="material-icons">play_arrow</span>
+                                    Deploy & Run
+                                </button>
+                            </div>
+                        </div>
+                        <div class="code-editor">
+<span class="comment">// SPDX-License-Identifier: MIT</span>
+<span class="keyword">pragma</span> <span class="keyword">solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">contract</span> <span class="function">SimpleStorage</span> {
+    <span class="keyword">uint256</span> <span class="keyword">private</span> storedData;
+    
+    <span class="keyword">function</span> <span class="function">set</span>(<span class="keyword">uint256</span> x) <span class="keyword">public</span> {
+        storedData = x;
+    }
+    
+    <span class="keyword">function</span> <span class="function">get</span>() <span class="keyword">public</span> <span class="keyword">view</span> <span class="keyword">returns</span> (<span class="keyword">uint256</span>) {
+        <span class="keyword">return</span> storedData;
+    }
+    
+    <span class="keyword">function</span> <span class="function">main</span>() <span class="keyword">public</span> {
+        <span class="function">set</span>(<span class="number">42</span>);
+    }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compilation Results -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <span class="material-icons">check_circle</span>
+                            Compilation Results
+                        </h2>
+                    </div>
+                    <div class="section-content">
+                        <div style="background: var(--gray-light); padding: 16px; border-radius: 8px; color: var(--success);">
+                            ✅ Contract compiled successfully<br>
+                            📊 Gas estimate: 125,000<br>
+                            📝 Functions: set, get, main
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Panel -->
+            <aside class="right-panel">
+                <!-- Blockchain Status -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <span class="material-icons">analytics</span>
+                        Blockchain Status
+                    </div>
+                    <div class="panel-content">
+                        <div class="status-grid">
+                            <div class="status-item">
+                                <div class="status-value">156</div>
+                                <div class="status-label">Block Height</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-value">23</div>
+                                <div class="status-label">Transactions</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-value">5</div>
+                                <div class="status-label">Contracts</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-value">3</div>
+                                <div class="status-label">Accounts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <span class="material-icons">history</span>
+                        Recent Transactions
+                    </div>
+                    <div class="panel-content">
+                        <div class="transaction-item">
+                            <div class="tx-icon tx-deployment">🤝</div>
+                            <div class="tx-info">
+                                <div class="tx-title">Contract Deployment</div>
+                                <div class="tx-details">SimpleStorage • 2m ago</div>
+                            </div>
+                            <div class="tx-status status-executed">Success</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="tx-icon tx-call">▶️</div>
+                            <div class="tx-info">
+                                <div class="tx-title">Function Call</div>
+                                <div class="tx-details">set(42) • 1m ago</div>
+                            </div>
+                            <div class="tx-status status-executed">Success</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="tx-icon tx-call">▶️</div>
+                            <div class="tx-info">
+                                <div class="tx-title">Function Call</div>
+                                <div class="tx-details">get() • 30s ago</div>
+                            </div>
+                            <div class="tx-status status-executed">Success</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deployed Contracts -->
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <span class="material-icons">deployed_code</span>
+                        Deployed Contracts
+                    </div>
+                    <div class="panel-content">
+                        <div class="transaction-item">
+                            <div class="tx-icon tx-deployment">📄</div>
+                            <div class="tx-info">
+                                <div class="tx-title">SimpleStorage</div>
+                                <div class="tx-details">0x1234...5678</div>
+                            </div>
+                            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">
+                                Execute
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // Simple interactivity for demo
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.transaction-item').forEach(item => {
+            item.addEventListener('click', () => {
+                alert('Transaction details would be shown here');
+            });
+        });
+    </script>
+</body>
+</html>

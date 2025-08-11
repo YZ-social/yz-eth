@@ -1,4 +1,4 @@
-import { Add as AddIcon, Refresh as RefreshIcon, SwapHoriz as SwapHorizIcon } from '@mui/icons-material'
+import { Add as AddIcon, SwapHoriz as SwapHorizIcon } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -38,11 +38,6 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
     }
   }, [blockchainState])
 
-  const updateAccounts = () => {
-    // Accounts are now automatically updated via Multisynq state
-    // This function is kept for compatibility but no longer needed
-  }
-
   const handleOpenDialog = () => {
     setOpenDialog(true)
   }
@@ -72,10 +67,6 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
     }
   }
 
-  const handleRefresh = () => {
-    updateAccounts()
-  }
-
   const handleOpenTransferModal = () => {
     setTransferModalOpen(true)
   }
@@ -85,7 +76,7 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
   }
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2, pb: 4 }}>
       <Typography variant="h5" gutterBottom>
         Account Management
       </Typography>
@@ -100,15 +91,6 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
           Create Account
         </Button>
         <Button
-          variant="outlined"
-          color="secondary"
-          startIcon={<RefreshIcon />}
-          onClick={handleRefresh}
-          sx={{ mr: 1 }}
-        >
-          Refresh
-        </Button>
-        <Button
           variant="contained"
           color="primary"
           startIcon={<SwapHorizIcon />}
@@ -117,7 +99,7 @@ export default function AccountManagement({ blockManager }: AccountManagementPro
           Transfer
         </Button>
       </Box>
-      <Paper elevation={1} sx={{ p: 3, minHeight: '300px', maxHeight: '500px', overflowY: 'auto' }}>
+      <Paper elevation={1} sx={{ p: 3, minHeight: '300px', overflowY: 'auto' }}>
         <Typography variant="h6" gutterBottom>
           Accounts
         </Typography>

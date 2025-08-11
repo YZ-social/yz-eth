@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YZ ETH Demo 4 - Split Pane Layout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brown-primary: #8B4513;
+            --brown-secondary: #A0522D;
+            --brown-light: #D2B48C;
+            --brown-bg: #F5F5DC;
+            --brown-dark: #654321;
+            --white: #FFFFFF;
+            --gray-light: #F8F9FA;
+            --gray-medium: #6C757D;
+            --gray-dark: #343A40;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --info: #17A2B8;
+            --border-color: #E5E5E5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--brown-bg);
+            color: var(--gray-dark);
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--brown-primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--brown-primary);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray-medium);
+            font-size: 14px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--success);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--white);
+        }
+
+        .header-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--brown-secondary);
+        }
+
+        .btn-secondary {
+            background: var(--gray-light);
+            color: var(--gray-dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-medium);
+            color: var(--white);
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* Left Sidebar */
+        .left-sidebar {
+            width: 280px;
+            background: var(--white);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--brown-light);
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--brown-dark);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 12px;
+            color: var(--brown-secondary);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 20px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: var(--gray-light);
+        }
+
+        .sidebar-item.active {
+            background: var(--brown-primary);
+            color: var(--white);
+            border-left-color: var(--brown-secondary);
+        }
+
+        .sidebar-icon {
+            font-size: 18px;
+        }
+
+        .sidebar-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .sidebar-badge {
+            background: var(--brown-secondary);
+            color: var(--white);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .sidebar-item.active .sidebar-badge {
+            background: var(--white);
+            color: var(--brown-primary);
+        }
+
+        /* Center Pane */
+        .center-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .pane-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gray-light);
+        }
+
+        .pane-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--brown-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pane-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pane-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Code Editor */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-tabs {
+            display: flex;
+            background: var(--gray-light);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .editor-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .editor-tab:hover {
+            background: var(--white);
+        }
+
+        .editor-tab.active {
+            background: var(--white);
+            border-bottom-color: var(--brown-primary);
+            color: var(--brown-primary);
+        }
+
+        .tab-close {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+
+        .tab-close:hover {
+            background: var(--gray-medium);
+            color: var(--white);
+            opacity: 1;
+        }
+
+        .code-editor {
+            flex: 1;
+            background: #1e1e1e;
+            color: #ffffff;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 350px;
+            background: var(--white);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .panel-tabs {
+            display: flex;
+            background: var(--gray-light);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+
+        .panel-tab:hover {
+            background: var(--white);
+        }
+
+        .panel-tab.active {
+            background: var(--white);
+            border-bottom-color: var(--brown-primary);
+            color: var(--brown-primary);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        /* Console at bottom */
+        .console-container {
+            height: 200px;
+            border-top: 1px solid var(--border-color);
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .console-header {
+            background: #333;
+            color: var(--white);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .console-output {
+            flex: 1;
+            padding: 12px 16px;
+            color: #00ff00;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow-y: auto;
+        }
+
+        /* Stats Grid */
+        .stats-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--gray-light);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--brown-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--gray-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* List Items */
+        .list-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray-light);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .list-item:hover {
+            background: var(--gray-light);
+            margin: 0 -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .icon-deployment { background: var(--brown-light); color: var(--brown-dark); }
+        .icon-execution { background: var(--success); color: var(--white); }
+        .icon-transfer { background: var(--info); color: var(--white); }
+        .icon-contract { background: var(--brown-primary); color: var(--white); }
+        .icon-account { background: var(--warning); color: var(--gray-dark); }
+
+        .item-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-subtitle {
+            font-size: 12px;
+            color: var(--gray-medium);
+            font-family: monospace;
+        }
+
+        .item-meta {
+            font-size: 10px;
+            color: var(--gray-medium);
+        }
+
+        .item-action {
+            padding: 4px 8px;
+            background: var(--brown-primary);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .item-action:hover {
+            background: var(--brown-secondary);
+        }
+
+        .item-balance {
+            font-weight: 600;
+            color: var(--success);
+            font-size: 12px;
+        }
+
+        /* Resizable Splitters */
+        .splitter {
+            width: 4px;
+            background: var(--border-color);
+            cursor: col-resize;
+            transition: background 0.2s;
+        }
+
+        .splitter:hover {
+            background: var(--brown-primary);
+        }
+
+        .vertical-splitter {
+            height: 4px;
+            background: var(--border-color);
+            cursor: row-resize;
+            transition: background 0.2s;
+        }
+
+        .vertical-splitter:hover {
+            background: var(--brown-primary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .left-sidebar {
+                width: 240px;
+            }
+            
+            .right-panel {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .left-sidebar {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .right-panel {
+                width: 100%;
+                height: 250px;
+                border-top: 1px solid var(--border-color);
+            }
+            
+            .console-container {
+                height: 150px;
+            }
+        }
+
+        /* Syntax highlighting */
+        .keyword { color: #569CD6; }
+        .string { color: #CE9178; }
+        .comment { color: #6A9955; }
+        .function { color: #DCDCAA; }
+        .number { color: #B5CEA8; }
+        .type { color: #4EC9B0; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">YZ</div>
+                <div class="logo-text">YZ ETH Studio</div>
+            </div>
+            <div class="breadcrumb">
+                <span class="material-icons" style="font-size: 16px;">folder</span>
+                <span>Workspace</span>
+                <span class="material-icons" style="font-size: 14px;">chevron_right</span>
+                <span>Counter.sol</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="status-chip">
+                <div class="status-dot"></div>
+                <span>Network Active</span>
+            </div>
+            <button class="header-btn btn-secondary">
+                <span class="material-icons" style="font-size: 16px;">library_books</span>
+                Examples
+            </button>
+            <button class="header-btn btn-primary">
+                <span class="material-icons" style="font-size: 16px;">play_arrow</span>
+                Deploy
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="left-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Project Explorer</div>
+                <div class="sidebar-subtitle">Smart Contract Workspace</div>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <div class="section-label">Navigation</div>
+                    <div class="sidebar-item active">
+                        <span class="material-icons sidebar-icon">code</span>
+                        <span class="sidebar-text">Code Editor</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">account_balance_wallet</span>
+                        <span class="sidebar-text">Accounts</span>
+                        <span class="sidebar-badge">3</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">deployed_code</span>
+                        <span class="sidebar-text">Contracts</span>
+                        <span class="sidebar-badge">5</span>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="section-label">Files</div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">description</span>
+                        <span class="sidebar-text">Counter.sol</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">description</span>
+                        <span class="sidebar-text">Storage.sol</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">description</span>
+                        <span class="sidebar-text">Calculator.sol</span>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="section-label">Examples</div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">folder</span>
+                        <span class="sidebar-text">Basic Contracts</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">folder</span>
+                        <span class="sidebar-text">Data Structures</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <span class="material-icons sidebar-icon">folder</span>
+                        <span class="sidebar-text">Advanced</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Pane -->
+        <main class="center-pane">
+            <div class="pane-header">
+                <div class="pane-title">
+                    <span class="material-icons">code</span>
+                    Solidity Editor
+                </div>
+                <div class="pane-actions">
+                    <button class="header-btn btn-secondary">
+                        <span class="material-icons" style="font-size: 16px;">build</span>
+                        Compile
+                    </button>
+                    <button class="header-btn btn-secondary">
+                        <span class="material-icons" style="font-size: 16px;">save</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pane-content">
+                <div class="editor-container">
+                    <div class="editor-tabs">
+                        <div class="editor-tab active">
+                            <span class="material-icons" style="font-size: 16px;">description</span>
+                            <span>Counter.sol</span>
+                            <span class="tab-close material-icons">close</span>
+                        </div>
+                        <div class="editor-tab">
+                            <span class="material-icons" style="font-size: 16px;">add</span>
+                            <span>New File</span>
+                        </div>
+                    </div>
+                    
+                    <div class="code-editor">
+<span class="comment">// SPDX-License-Identifier: MIT</span>
+<span class="keyword">pragma</span> <span class="keyword">solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="comment">/**
+ * @title Counter
+ * @dev Simple counter contract with events
+ */</span>
+<span class="keyword">contract</span> <span class="function">Counter</span> {
+    <span class="keyword">uint256</span> <span class="keyword">private</span> count;
+    <span class="keyword">address</span> <span class="keyword">public</span> owner;
+    
+    <span class="comment">// Events</span>
+    <span class="keyword">event</span> <span class="function">CountIncremented</span>(
+        <span class="keyword">address</span> <span class="keyword">indexed</span> user, 
+        <span class="keyword">uint256</span> newCount,
+        <span class="keyword">uint256</span> timestamp
+    );
+    
+    <span class="keyword">event</span> <span class="function">CountReset</span>(
+        <span class="keyword">address</span> <span class="keyword">indexed</span> user,
+        <span class="keyword">uint256</span> timestamp
+    );
+    
+    <span class="comment">// Constructor</span>
+    <span class="keyword">constructor</span>() {
+        owner = msg.sender;
+        count = <span class="number">0</span>;
+    }
+    
+    <span class="comment">// Modifiers</span>
+    <span class="keyword">modifier</span> <span class="function">onlyOwner</span>() {
+        <span class="keyword">require</span>(msg.sender == owner, <span class="string">"Only owner can call this function"</span>);
+        _;
+    }
+    
+    <span class="comment">// Functions</span>
+    <span class="keyword">function</span> <span class="function">increment</span>() <span class="keyword">public</span> {
+        count++;
+        <span class="keyword">emit</span> <span class="function">CountIncremented</span>(msg.sender, count, block.timestamp);
+    }
+    
+    <span class="keyword">function</span> <span class="function">getCount</span>() <span class="keyword">public</span> <span class="keyword">view</span> <span class="keyword">returns</span> (<span class="type">uint256</span>) {
+        <span class="keyword">return</span> count;
+    }
+    
+    <span class="keyword">function</span> <span class="function">reset</span>() <span class="keyword">public</span> <span class="function">onlyOwner</span> {
+        count = <span class="number">0</span>;
+        <span class="keyword">emit</span> <span class="function">CountReset</span>(msg.sender, block.timestamp);
+    }
+    
+    <span class="keyword">function</span> <span class="function">main</span>() <span class="keyword">public</span> {
+        <span class="function">increment</span>();
+        <span class="function">increment</span>();
+        <span class="function">increment</span>();
+    }
+}
+                    </div>
+                </div>
+                
+                <!-- Console -->
+                <div class="console-container">
+                    <div class="console-header">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="font-size: 14px;">terminal</span>
+                            <span>Console</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="background: var(--success); padding: 2px 8px; border-radius: 10px; font-size: 10px;">READY</div>
+                            <span class="material-icons" style="font-size: 14px; cursor: pointer;">clear</span>
+                        </div>
+                    </div>
+                    <div class="console-output">
+> Compiling Counter.sol...
+✅ Compilation successful
+📊 Contract: Counter
+   - Gas estimate: 189,432
+   - Functions: increment, getCount, reset, main
+   - Events: CountIncremented, CountReset
+
+> Deploying Counter contract...
+🚀 Contract deployed at: 0x742d35Cc6434C0532925a3b8D6aC6C3e98D9dc5b
+💰 Gas used: 295,000
+⏱️ Block time: 1.8s
+🎯 Contract ready for interaction
+
+> Ready for next command...
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel -->
+        <aside class="right-panel">
+            <div class="panel-tabs">
+                <div class="panel-tab active">Overview</div>
+                <div class="panel-tab">Activity</div>
+                <div class="panel-tab">Contracts</div>
+                <div class="panel-tab">Accounts</div>
+            </div>
+            
+            <div class="panel-content">
+                <!-- Overview Tab -->
+                <div class="tab-content active">
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-value">156</div>
+                            <div class="stat-label">Blocks</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">23</div>
+                            <div class="stat-label">Transactions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">Contracts</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">3</div>
+                            <div class="stat-label">Accounts</div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 12px; color: var(--brown-primary);">Recent Activity</h4>
+                    <div class="list-container">
+                        <div class="list-item">
+                            <div class="item-icon icon-deployment">🤝</div>
+                            <div class="item-details">
+                                <div class="item-title">Contract Deployed</div>
+                                <div class="item-subtitle">Counter</div>
+                                <div class="item-meta">2 minutes ago</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-icon icon-execution">▶️</div>
+                            <div class="item-details">
+                                <div class="item-title">Function Executed</div>
+                                <div class="item-subtitle">increment()</div>
+                                <div class="item-meta">1 minute ago</div>
+                            </div>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-icon icon-execution">🔍</div>
+                            <div class="item-details">
+                                <div class="item-title">View Function</div>
+                                <div class="item-subtitle">getCount() → 3</div>
+                                <div class="item-meta">30 seconds ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contracts Tab Content -->
+                <div class="tab-content" style="display: none;">
+                    <h4 style="margin-bottom: 12px; color: var(--brown-primary);">Deployed Contracts</h4>
+                    <div class="list-container">
+                        <div class="list-item">
+                            <div class="item-icon icon-contract">📄</div>
+                            <div class="item-details">
+                                <div class="item-title">Counter</div>
+                                <div class="item-subtitle">0x742d...dc5b</div>
+                            </div>
+                            <button class="item-action">Execute</button>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-icon icon-contract">📄</div>
+                            <div class="item-details">
+                                <div class="item-title">SimpleStorage</div>
+                                <div class="item-subtitle">0x1234...5678</div>
+                            </div>
+                            <button class="item-action">Execute</button>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-icon icon-contract">📄</div>
+                            <div class="item-details">
+                                <div class="item-title">Calculator</div>
+                                <div class="item-subtitle">0xabcd...efgh</div>
+                            </div>
+                            <button class="item-action">Execute</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accounts Tab Content -->
+                <div class="tab-content" style="display: none;">
+                    <h4 style="margin-bottom: 12px; color: var(--brown-primary);">Account Management</h4>
+                    <div class="list-container">
+                        <div class="list-item">
+                            <div class="item-icon icon-account">👑</div>
+                            <div class="item-details">
+                                <div class="item-title">Genesis Account</div>
+                                <div class="item-subtitle">0x742d...dc5b</div>
+                            </div>
+                            <div class="item-balance">1000.0 ETH</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-icon icon-account">👤</div>
+                            <div class="item-details">
+                                <div class="item-title">Test Account 1</div>
+                                <div class="item-subtitle">0x1234...5678</div>
+                            </div>
+                            <div class="item-balance">50.5 ETH</div>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-icon icon-account">👤</div>
+                            <div class="item-details">
+                                <div class="item-title">Test Account 2</div>
+                                <div class="item-subtitle">0xabcd...efgh</div>
+                            </div>
+                            <div class="item-balance">25.0 ETH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.panel-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active from all tabs
+                document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+                
+                // Add active to clicked tab
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                const index = Array.from(document.querySelectorAll('.panel-tab')).indexOf(tab);
+                const contents = document.querySelectorAll('.tab-content');
+                if (contents[index]) {
+                    contents[index].style.display = 'block';
+                }
+            });
+        });
+
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // Interactive elements
+        document.querySelectorAll('.list-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (!item.querySelector('.item-action')) {
+                    alert('Item details would be shown here');
+                }
+            });
+        });
+
+        document.querySelectorAll('.item-action').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert('Contract execution dialog would open here');
+            });
+        });
+
+        // Tab close functionality
+        document.querySelectorAll('.tab-close').forEach(close => {
+            close.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert('File would be closed here');
+            });
+        });
+    </script>
+</body>
+</html>

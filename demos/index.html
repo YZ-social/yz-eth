@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YZ ETH UI Demos - Design Comparison</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brown-primary: #8B4513;
+            --brown-secondary: #A0522D;
+            --brown-light: #D2B48C;
+            --brown-bg: #F5F5DC;
+            --brown-dark: #654321;
+            --white: #FFFFFF;
+            --gray-light: #F8F9FA;
+            --gray-medium: #6C757D;
+            --gray-dark: #343A40;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --info: #17A2B8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--brown-bg) 0%, var(--white) 50%, var(--brown-light) 100%);
+            color: var(--gray-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .main-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--brown-primary);
+            margin-bottom: 16px;
+            text-shadow: 2px 2px 4px rgba(139, 69, 19, 0.1);
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: var(--gray-medium);
+            margin-bottom: 24px;
+        }
+
+        .description {
+            font-size: 16px;
+            color: var(--gray-dark);
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(139, 69, 19, 0.1);
+        }
+
+        /* Demo Grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+
+        .demo-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(139, 69, 19, 0.12);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(139, 69, 19, 0.2);
+        }
+
+        .demo-preview {
+            height: 250px;
+            background: var(--gray-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .demo-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--brown-primary) 0%, var(--brown-secondary) 100%);
+            opacity: 0.1;
+        }
+
+        .demo-preview-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--brown-primary);
+        }
+
+        .preview-icon {
+            font-size: 64px;
+            margin-bottom: 12px;
+        }
+
+        .preview-text {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .demo-content {
+            padding: 24px;
+        }
+
+        .demo-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--brown-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .demo-description {
+            color: var(--gray-medium);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .demo-features {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .demo-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--gray-dark);
+        }
+
+        .demo-features li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .demo-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--brown-primary);
+            color: var(--white);
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            background: var(--brown-secondary);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--gray-light);
+            color: var(--gray-dark);
+            border: 2px solid var(--gray-medium);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-medium);
+            color: var(--white);
+        }
+
+        /* Comparison Section */
+        .comparison-section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 24px rgba(139, 69, 19, 0.12);
+            margin-bottom: 40px;
+        }
+
+        .comparison-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--brown-primary);
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .comparison-table th {
+            background: var(--brown-light);
+            color: var(--brown-dark);
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: var(--gray-light);
+        }
+
+        .feature-yes {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .feature-no {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .feature-partial {
+            color: var(--warning);
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--gray-medium);
+        }
+
+        .footer-note {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--brown-primary);
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .main-title {
+                font-size: 36px;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .comparison-section {
+                padding: 24px;
+            }
+            
+            .comparison-table {
+                font-size: 14px;
+            }
+            
+            .comparison-table th,
+            .comparison-table td {
+                padding: 12px;
+            }
+        }
+
+        /* Demo Tags */
+        .demo-tag {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--brown-primary);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag-new {
+            background: var(--success);
+        }
+
+        .tag-mobile {
+            background: var(--info);
+        }
+
+        .tag-desktop {
+            background: var(--warning);
+        }
+
+        .tag-responsive {
+            background: var(--brown-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="main-title">YZ ETH UI Demos</h1>
+            <p class="subtitle">Design Comparison & Evaluation</p>
+            <div class="description">
+                <p><strong>Welcome to the YZ ETH UI Demo Gallery!</strong></p>
+                <p>This collection showcases four different design approaches for the YZ ETH blockchain interface. Each demo maintains the brown and white color scheme while exploring different layout strategies, user experience patterns, and responsive design approaches. These demos are designed to help our engineering team evaluate and choose the best direction for the production interface.</p>
+            </div>
+        </header>
+
+        <!-- Demo Grid -->
+        <div class="demo-grid">
+            <!-- Demo 1: Card Layout -->
+            <div class="demo-card">
+                <div class="demo-tag tag-responsive">Responsive</div>
+                <div class="demo-preview">
+                    <div class="demo-preview-content">
+                        <div class="preview-icon">🃏</div>
+                        <div class="preview-text">Card-Based Layout</div>
+                    </div>
+                </div>
+                <div class="demo-content">
+                    <h3 class="demo-title">
+                        <span class="material-icons">view_module</span>
+                        Demo 1: Card Layout
+                    </h3>
+                    <p class="demo-description">
+                        Clean card-based design with excellent use of whitespace and clear visual hierarchy. Features a traditional sidebar navigation with organized sections.
+                    </p>
+                    <ul class="demo-features">
+                        <li>Clean card-based sections</li>
+                        <li>Excellent whitespace utilization</li>
+                        <li>Clear visual hierarchy</li>
+                        <li>Traditional sidebar navigation</li>
+                        <li>Responsive design</li>
+                        <li>Brown/white color scheme</li>
+                    </ul>
+                    <div class="demo-actions">
+                        <a href="demo1-cards/index.html" class="btn btn-primary" target="_blank">
+                            <span class="material-icons">launch</span>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo 2: Dashboard -->
+            <div class="demo-card">
+                <div class="demo-tag tag-desktop">Desktop</div>
+                <div class="demo-preview">
+                    <div class="demo-preview-content">
+                        <div class="preview-icon">📊</div>
+                        <div class="preview-text">Dashboard Widgets</div>
+                    </div>
+                </div>
+                <div class="demo-content">
+                    <h3 class="demo-title">
+                        <span class="material-icons">dashboard</span>
+                        Demo 2: Dashboard Layout
+                    </h3>
+                    <p class="demo-description">
+                        Widget-based dashboard approach with information density and real-time monitoring capabilities. Perfect for power users who need comprehensive overview.
+                    </p>
+                    <ul class="demo-features">
+                        <li>Widget-based interface</li>
+                        <li>High information density</li>
+                        <li>Real-time monitoring</li>
+                        <li>Customizable layout</li>
+                        <li>Statistics and charts</li>
+                        <li>Power user focused</li>
+                    </ul>
+                    <div class="demo-actions">
+                        <a href="demo2-dashboard/index.html" class="btn btn-primary" target="_blank">
+                            <span class="material-icons">launch</span>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo 3: Mobile First -->
+            <div class="demo-card">
+                <div class="demo-tag tag-mobile">Mobile</div>
+                <div class="demo-preview">
+                    <div class="demo-preview-content">
+                        <div class="preview-icon">📱</div>
+                        <div class="preview-text">Mobile-First Design</div>
+                    </div>
+                </div>
+                <div class="demo-content">
+                    <h3 class="demo-title">
+                        <span class="material-icons">phone_android</span>
+                        Demo 3: Mobile-First
+                    </h3>
+                    <p class="demo-description">
+                        Optimized for mobile devices with collapsible sections, bottom navigation, and touch-friendly interactions. Scales beautifully to desktop.
+                    </p>
+                    <ul class="demo-features">
+                        <li>Mobile-first responsive design</li>
+                        <li>Collapsible sections</li>
+                        <li>Bottom navigation</li>
+                        <li>Touch-friendly interface</li>
+                        <li>Quick action buttons</li>
+                        <li>Floating action button</li>
+                    </ul>
+                    <div class="demo-actions">
+                        <a href="demo3-mobile/index.html" class="btn btn-primary" target="_blank">
+                            <span class="material-icons">launch</span>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo 4: Split Pane -->
+            <div class="demo-card">
+                <div class="demo-tag tag-new">Pro</div>
+                <div class="demo-preview">
+                    <div class="demo-preview-content">
+                        <div class="preview-icon">⚡</div>
+                        <div class="preview-text">Split-Pane Studio</div>
+                    </div>
+                </div>
+                <div class="demo-content">
+                    <h3 class="demo-title">
+                        <span class="material-icons">view_column</span>
+                        Demo 4: Split-Pane Studio
+                    </h3>
+                    <p class="demo-description">
+                        Professional IDE-style interface with split panes, tabbed editing, and dedicated workspace areas. Built for serious development work.
+                    </p>
+                    <ul class="demo-features">
+                        <li>IDE-style split panes</li>
+                        <li>Tabbed file editing</li>
+                        <li>Dedicated workspace areas</li>
+                        <li>Professional appearance</li>
+                        <li>Integrated console</li>
+                        <li>Project explorer</li>
+                    </ul>
+                    <div class="demo-actions">
+                        <a href="demo4-splitpane/index.html" class="btn btn-primary" target="_blank">
+                            <span class="material-icons">launch</span>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <section class="comparison-section">
+            <h2 class="comparison-title">Feature Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Demo 1: Cards</th>
+                        <th>Demo 2: Dashboard</th>
+                        <th>Demo 3: Mobile</th>
+                        <th>Demo 4: Split-Pane</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Mobile Responsive</strong></td>
+                        <td class="feature-yes">Excellent</td>
+                        <td class="feature-partial">Good</td>
+                        <td class="feature-yes">Outstanding</td>
+                        <td class="feature-partial">Basic</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Desktop Experience</strong></td>
+                        <td class="feature-yes">Excellent</td>
+                        <td class="feature-yes">Outstanding</td>
+                        <td class="feature-yes">Good</td>
+                        <td class="feature-yes">Outstanding</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Information Density</strong></td>
+                        <td class="feature-partial">Medium</td>
+                        <td class="feature-yes">High</td>
+                        <td class="feature-partial">Medium</td>
+                        <td class="feature-yes">High</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Visual Clarity</strong></td>
+                        <td class="feature-yes">Outstanding</td>
+                        <td class="feature-yes">Good</td>
+                        <td class="feature-yes">Excellent</td>
+                        <td class="feature-yes">Excellent</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Beginner Friendly</strong></td>
+                        <td class="feature-yes">Excellent</td>
+                        <td class="feature-partial">Medium</td>
+                        <td class="feature-yes">Outstanding</td>
+                        <td class="feature-no">Basic</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Professional Appeal</strong></td>
+                        <td class="feature-yes">Good</td>
+                        <td class="feature-yes">Excellent</td>
+                        <td class="feature-partial">Medium</td>
+                        <td class="feature-yes">Outstanding</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Development Efficiency</strong></td>
+                        <td class="feature-partial">Medium</td>
+                        <td class="feature-yes">Good</td>
+                        <td class="feature-partial">Medium</td>
+                        <td class="feature-yes">Excellent</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Touch Friendly</strong></td>
+                        <td class="feature-yes">Good</td>
+                        <td class="feature-partial">Basic</td>
+                        <td class="feature-yes">Outstanding</td>
+                        <td class="feature-no">Basic</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-note">
+                <h4 style="color: var(--brown-primary); margin-bottom: 12px;">📋 Evaluation Notes</h4>
+                <p><strong>Demo 1 (Cards)</strong> - Best overall balance, excellent for general users</p>
+                <p><strong>Demo 2 (Dashboard)</strong> - Ideal for power users who need comprehensive monitoring</p>
+                <p><strong>Demo 3 (Mobile)</strong> - Perfect for mobile-first strategy and accessibility</p>
+                <p><strong>Demo 4 (Split-Pane)</strong> - Professional developer-focused interface</p>
+            </div>
+            <p>YZ ETH UI Design Exploration &copy; 2024 | Choose the design that best fits your team's vision</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add some interactive behavior
+        document.querySelectorAll('.demo-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Table row highlighting
+        document.querySelectorAll('.comparison-table tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.backgroundColor = 'var(--brown-bg)';
+            });
+            
+            row.addEventListener('mouseleave', () => {
+                row.style.backgroundColor = '';
+            });
+        });
+    </script>
+</body>
+</html>

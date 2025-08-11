@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YZ ETH Demo 3 - Mobile First</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brown-primary: #8B4513;
+            --brown-secondary: #A0522D;
+            --brown-light: #D2B48C;
+            --brown-bg: #F5F5DC;
+            --brown-dark: #654321;
+            --white: #FFFFFF;
+            --gray-light: #F8F9FA;
+            --gray-medium: #6C757D;
+            --gray-dark: #343A40;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --info: #17A2B8;
+            --border-radius: 12px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--brown-bg);
+            color: var(--gray-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Mobile-First Header */
+        .mobile-header {
+            background: var(--white);
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: var(--spacing-md);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--brown-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .brand-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--brown-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            background: var(--gray-light);
+            color: var(--gray-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        .header-btn.active {
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--brown-primary);
+            color: var(--white);
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        /* Main Container */
+        .container {
+            padding: var(--spacing-md);
+            max-width: 100vw;
+        }
+
+        /* Collapsible Sections */
+        .section {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-md);
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.08);
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: var(--spacing-md);
+            background: var(--brown-light);
+            color: var(--brown-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .section-header:hover {
+            background: var(--brown-secondary);
+            color: var(--white);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .section-toggle {
+            transition: transform 0.2s;
+        }
+
+        .section-toggle.rotated {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            padding: var(--spacing-md);
+            display: none;
+        }
+
+        .section-content.expanded {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+            }
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .quick-action {
+            background: var(--white);
+            border: 2px solid var(--brown-light);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            border-color: var(--brown-primary);
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        .quick-action-icon {
+            font-size: 32px;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .quick-action-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .quick-action-desc {
+            font-size: 12px;
+            color: var(--gray-medium);
+        }
+
+        .quick-action:hover .quick-action-desc {
+            color: var(--white);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat-card {
+            background: var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--brown-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Code Editor Mobile */
+        .mobile-editor {
+            background: #1e1e1e;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .editor-header {
+            background: #333;
+            color: var(--white);
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-filename {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .editor-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--brown-primary);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .code-container {
+            padding: var(--spacing-md);
+            color: var(--white);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Transaction List Mobile */
+        .transaction-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--gray-light);
+            transition: background 0.2s;
+        }
+
+        .transaction-item:hover {
+            background: var(--gray-light);
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .tx-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .tx-deployment { background: var(--brown-light); color: var(--brown-dark); }
+        .tx-execution { background: var(--success); color: var(--white); }
+        .tx-transfer { background: var(--info); color: var(--white); }
+
+        .tx-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tx-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tx-meta {
+            font-size: 12px;
+            color: var(--gray-medium);
+        }
+
+        .tx-status {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-success { background: var(--success); color: var(--white); }
+        .status-pending { background: var(--warning); color: var(--gray-dark); }
+
+        /* Contract/Account Lists */
+        .item-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .item-address {
+            font-size: 12px;
+            color: var(--gray-medium);
+            font-family: monospace;
+        }
+
+        .item-action {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--brown-primary);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Console Mobile */
+        .mobile-console {
+            background: #1e1e1e;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-top: var(--spacing-md);
+        }
+
+        .console-header {
+            background: #333;
+            color: var(--white);
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-status {
+            padding: 2px 8px;
+            background: var(--success);
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .console-output {
+            padding: var(--spacing-md);
+            color: #00ff00;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            line-height: 1.3;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: around;
+            padding: var(--spacing-sm);
+            z-index: 1000;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: var(--spacing-xs);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 60px;
+        }
+
+        .bottom-nav-item:hover,
+        .bottom-nav-item.active {
+            background: var(--brown-primary);
+            color: var(--white);
+        }
+
+        .bottom-nav-icon {
+            font-size: 20px;
+        }
+
+        .bottom-nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: var(--spacing-md);
+            width: 56px;
+            height: 56px;
+            background: var(--brown-primary);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(139, 69, 19, 0.3);
+            transition: all 0.2s;
+        }
+
+        .fab:hover {
+            background: var(--brown-secondary);
+            transform: scale(1.1);
+        }
+
+        /* Desktop Responsive */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .fab {
+                display: none;
+            }
+            
+            .code-container {
+                font-size: 14px;
+                max-height: 400px;
+            }
+        }
+
+        /* Syntax highlighting */
+        .keyword { color: #569CD6; }
+        .string { color: #CE9178; }
+        .comment { color: #6A9955; }
+        .function { color: #DCDCAA; }
+        .number { color: #B5CEA8; }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <div class="brand">
+                <div class="brand-icon">YZ</div>
+                <div class="brand-text">YZ ETH</div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" id="menuBtn">
+                    <span class="material-icons">menu</span>
+                </button>
+                <button class="header-btn" id="compileBtn">
+                    <span class="material-icons">build</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-dot"></div>
+            <span>Network Active</span>
+        </div>
+        <div class="status-item">
+            <span>Block: 156</span>
+        </div>
+        <div class="status-item">
+            <span>Gas: 21k</span>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="quick-action" onclick="toggleSection('editor')">
+                <div class="quick-action-icon">💻</div>
+                <div class="quick-action-title">Code</div>
+                <div class="quick-action-desc">Write & Deploy</div>
+            </div>
+            <div class="quick-action" onclick="toggleSection('transactions')">
+                <div class="quick-action-icon">📋</div>
+                <div class="quick-action-title">History</div>
+                <div class="quick-action-desc">View Activity</div>
+            </div>
+            <div class="quick-action" onclick="toggleSection('contracts')">
+                <div class="quick-action-icon">🤝</div>
+                <div class="quick-action-title">Contracts</div>
+                <div class="quick-action-desc">Execute Functions</div>
+            </div>
+            <div class="quick-action" onclick="toggleSection('accounts')">
+                <div class="quick-action-icon">💰</div>
+                <div class="quick-action-title">Wallets</div>
+                <div class="quick-action-desc">Manage Funds</div>
+            </div>
+        </div>
+
+        <!-- Network Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">156</div>
+                <div class="stat-label">Blocks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">23</div>
+                <div class="stat-label">Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Contracts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Accounts</div>
+            </div>
+        </div>
+
+        <!-- Code Editor Section -->
+        <div class="section" id="editor-section">
+            <div class="section-header" onclick="toggleSection('editor')">
+                <div class="section-title">
+                    <span class="material-icons">code</span>
+                    Solidity Editor
+                </div>
+                <span class="material-icons section-toggle" id="editor-toggle">expand_more</span>
+            </div>
+            <div class="section-content expanded" id="editor-content">
+                <div class="mobile-editor">
+                    <div class="editor-header">
+                        <div class="editor-filename">Counter.sol</div>
+                        <div class="editor-actions">
+                            <button class="editor-btn">Compile</button>
+                            <button class="editor-btn">Deploy</button>
+                        </div>
+                    </div>
+                    <div class="code-container">
+<span class="comment">// SPDX-License-Identifier: MIT</span>
+<span class="keyword">pragma</span> <span class="keyword">solidity</span> <span class="string">^0.8.0</span>;
+
+<span class="keyword">contract</span> <span class="function">Counter</span> {
+    <span class="keyword">uint256</span> <span class="keyword">private</span> count;
+    
+    <span class="keyword">event</span> <span class="function">CountIncremented</span>(
+        <span class="keyword">address</span> <span class="keyword">indexed</span> user, 
+        <span class="keyword">uint256</span> newCount
+    );
+    
+    <span class="keyword">function</span> <span class="function">increment</span>() <span class="keyword">public</span> {
+        count++;
+        <span class="keyword">emit</span> <span class="function">CountIncremented</span>(msg.sender, count);
+    }
+    
+    <span class="keyword">function</span> <span class="function">getCount</span>() 
+        <span class="keyword">public</span> <span class="keyword">view</span> <span class="keyword">returns</span> (<span class="keyword">uint256</span>) 
+    {
+        <span class="keyword">return</span> count;
+    }
+    
+    <span class="keyword">function</span> <span class="function">main</span>() <span class="keyword">public</span> {
+        <span class="function">increment</span>();
+        <span class="function">increment</span>();
+    }
+}
+                    </div>
+                </div>
+                
+                <div class="mobile-console">
+                    <div class="console-header">
+                        <span>Console</span>
+                        <div class="console-status">Ready</div>
+                    </div>
+                    <div class="console-output">
+> Compiling Counter.sol...
+✅ Compilation successful
+📊 Gas estimate: 89,432
+🎯 Functions: increment, getCount, main
+
+> Deploying contract...
+🚀 Contract deployed at: 0x742d...dc5b
+💰 Gas used: 125,000
+
+> Ready for interaction
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Section -->
+        <div class="section" id="transactions-section">
+            <div class="section-header" onclick="toggleSection('transactions')">
+                <div class="section-title">
+                    <span class="material-icons">history</span>
+                    Transaction History
+                </div>
+                <span class="material-icons section-toggle" id="transactions-toggle">expand_more</span>
+            </div>
+            <div class="section-content" id="transactions-content">
+                <div class="transaction-list">
+                    <div class="transaction-item">
+                        <div class="tx-icon tx-deployment">🤝</div>
+                        <div class="tx-details">
+                            <div class="tx-title">Contract Deployment</div>
+                            <div class="tx-meta">Counter • 2 minutes ago</div>
+                        </div>
+                        <div class="tx-status status-success">Success</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="tx-icon tx-execution">▶️</div>
+                        <div class="tx-details">
+                            <div class="tx-title">Function Call</div>
+                            <div class="tx-meta">increment() • 1 minute ago</div>
+                        </div>
+                        <div class="tx-status status-success">Success</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="tx-icon tx-execution">🔍</div>
+                        <div class="tx-details">
+                            <div class="tx-title">View Function</div>
+                            <div class="tx-meta">getCount() → 2 • 30s ago</div>
+                        </div>
+                        <div class="tx-status status-success">Success</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="tx-icon tx-transfer">💸</div>
+                        <div class="tx-details">
+                            <div class="tx-title">ETH Transfer</div>
+                            <div class="tx-meta">1.5 ETH • 5 minutes ago</div>
+                        </div>
+                        <div class="tx-status status-success">Success</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contracts Section -->
+        <div class="section" id="contracts-section">
+            <div class="section-header" onclick="toggleSection('contracts')">
+                <div class="section-title">
+                    <span class="material-icons">deployed_code</span>
+                    Deployed Contracts
+                </div>
+                <span class="material-icons section-toggle" id="contracts-toggle">expand_more</span>
+            </div>
+            <div class="section-content" id="contracts-content">
+                <div class="item-list">
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">Counter</div>
+                            <div class="item-address">0x742d...dc5b</div>
+                        </div>
+                        <button class="item-action">Execute</button>
+                    </div>
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">SimpleStorage</div>
+                            <div class="item-address">0x1234...5678</div>
+                        </div>
+                        <button class="item-action">Execute</button>
+                    </div>
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">Calculator</div>
+                            <div class="item-address">0xabcd...efgh</div>
+                        </div>
+                        <button class="item-action">Execute</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accounts Section -->
+        <div class="section" id="accounts-section">
+            <div class="section-header" onclick="toggleSection('accounts')">
+                <div class="section-title">
+                    <span class="material-icons">account_balance_wallet</span>
+                    Account Management
+                </div>
+                <span class="material-icons section-toggle" id="accounts-toggle">expand_more</span>
+            </div>
+            <div class="section-content" id="accounts-content">
+                <div class="item-list">
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">Genesis Account</div>
+                            <div class="item-address">0x742d...dc5b</div>
+                        </div>
+                        <div style="color: var(--success); font-weight: 600;">1000.0 ETH</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">Test Account 1</div>
+                            <div class="item-address">0x1234...5678</div>
+                        </div>
+                        <div style="color: var(--success); font-weight: 600;">50.5 ETH</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="item-info">
+                            <div class="item-name">Test Account 2</div>
+                            <div class="item-address">0xabcd...efgh</div>
+                        </div>
+                        <div style="color: var(--success); font-weight: 600;">25.0 ETH</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom padding for mobile navigation -->
+        <div style="height: 80px;"></div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="quickDeploy()">
+        <span class="material-icons">play_arrow</span>
+    </button>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-item active" onclick="setActiveNav(this, 'editor')">
+            <span class="material-icons bottom-nav-icon">code</span>
+            <span class="bottom-nav-label">Code</span>
+        </div>
+        <div class="bottom-nav-item" onclick="setActiveNav(this, 'transactions')">
+            <span class="material-icons bottom-nav-icon">history</span>
+            <span class="bottom-nav-label">History</span>
+        </div>
+        <div class="bottom-nav-item" onclick="setActiveNav(this, 'contracts')">
+            <span class="material-icons bottom-nav-icon">deployed_code</span>
+            <span class="bottom-nav-label">Contracts</span>
+        </div>
+        <div class="bottom-nav-item" onclick="setActiveNav(this, 'accounts')">
+            <span class="material-icons bottom-nav-icon">account_balance_wallet</span>
+            <span class="bottom-nav-label">Accounts</span>
+        </div>
+    </nav>
+
+    <script>
+        function toggleSection(sectionName) {
+            const content = document.getElementById(sectionName + '-content');
+            const toggle = document.getElementById(sectionName + '-toggle');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.classList.remove('rotated');
+            } else {
+                content.classList.add('expanded');
+                toggle.classList.add('rotated');
+            }
+        }
+
+        function setActiveNav(element, section) {
+            // Remove active from all nav items
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active to clicked item
+            element.classList.add('active');
+            
+            // Scroll to section
+            const sectionElement = document.getElementById(section + '-section');
+            if (sectionElement) {
+                sectionElement.scrollIntoView({ behavior: 'smooth' });
+                // Expand the section
+                const content = document.getElementById(section + '-content');
+                const toggle = document.getElementById(section + '-toggle');
+                if (content && !content.classList.contains('expanded')) {
+                    content.classList.add('expanded');
+                    toggle.classList.add('rotated');
+                }
+            }
+        }
+
+        function quickDeploy() {
+            alert('Quick deploy functionality would be implemented here');
+        }
+
+        // Initialize with editor section expanded
+        document.addEventListener('DOMContentLoaded', function() {
+            const editorToggle = document.getElementById('editor-toggle');
+            if (editorToggle) {
+                editorToggle.classList.add('rotated');
+            }
+        });
+
+        // Add click handlers for interactive elements
+        document.querySelectorAll('.transaction-item').forEach(item => {
+            item.addEventListener('click', () => {
+                alert('Transaction details would be shown here');
+            });
+        });
+
+        document.querySelectorAll('.item-action').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert('Contract execution dialog would open here');
+            });
+        });
+    </script>
+</body>
+</html>

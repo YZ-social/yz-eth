@@ -1,8 +1,8 @@
 # AI Session Context - YZ-ETH Blockchain Simulator
 
 ## **Project Status**
-- **Current Version**: `v0.2.5`
-- **Last Updated**: August 6, 2025 at 04:41 PM  
+- **Current Version**: `v0.3.14`
+- **Last Updated**: August 11, 2025 at 05:23 PM  
 - **Phase**: 4 - Multi-file Support & Optimization (In Progress) - ✅ Architecture Cleanup Complete
 - **Status**: ✅ **OPERATIONAL** - All core features working with real-time synchronization
 
