@@ -1365,28 +1365,7 @@ export default function App() {
         </Toolbar>
       </AppBar>
 
-      {/* Future File Tabs Area - positioned to the right of the sidebar */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: drawerWidth,
-          right: 0,
-          height: '48px',
-          backgroundColor: 'background.paper',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          zIndex: (theme) => theme.zIndex.drawer,
-          display: 'flex',
-          alignItems: 'center',
-          px: 2,
-        }}
-      >
-        {/* Placeholder for file tabs - will be implemented later */}
-        <Typography variant="body2" color="text.secondary">
-          File tabs will appear here
-        </Typography>
-      </Box>
+
 
       <Drawer
         variant={isMobile ? 'temporary' : 'permanent'}
@@ -1504,7 +1483,7 @@ export default function App() {
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 6, pb: 20 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: '100%', mt: 0, pb: 20 }}>
         {/* Add YZ Status at the top of all sections */}
         <YZStatus />
         
