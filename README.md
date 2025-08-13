@@ -14,14 +14,7 @@ A **real-time collaborative Solidity execution environment** using EthereumJS VM
 
 ## 🎯 What is YZ-ETH?
 
-YZ-ETH is a **real-time collaborative** educational and development tool that simulates a complete Ethereum blockchain environment without requiring any external blockchain connection. Using the Multisynq framework, all blockchain state is **instantly synchronized** across multiple users in the same session. It's perfect for:
-
-- **Collaborative Learning**: Multiple students can work together on the same blockchain in real-time
-- **Team Development**: Developers can collaboratively test and debug smart contracts
-- **Live Teaching**: Instructors can demonstrate blockchain concepts with students seeing changes instantly
-- **Rapid Prototyping**: Test contract logic with teammates without gas costs or network delays
-- **Educational Purposes**: Understand blockchain mechanics with shared, synchronized state
-- **Development Testing**: Debug contracts collaboratively before deploying to real networks
+YZ-ETH is a **real-time collaborative** educational and development tool that simulates a complete Ethereum blockchain environment without requiring any external blockchain connection. Using the Multisynq framework, all blockchain state is **instantly synchronized** across multiple users in the same session. It was created to demonstrate a realtime multiuser consensus model with minimal additional overhead. It is a fully functional Ethereum virtual machine running bit-identically on all participating systems. Users can seamlessly join the session at any point in the blockchain process.
 
 ## ✨ Key Features
 
@@ -184,7 +177,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              YZ-ETH Collaborative Architecture v0.1.89     │
+│              YZ-ETH Collaborative Architecture v0.3.x       │
 ├─────────────────────┬─────────────────────┬─────────────────┤
 │   Frontend (React)  │  Multisynq Model    │   Blockchain    │
 │                     │   (Shared State)    │                 │

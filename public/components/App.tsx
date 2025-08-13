@@ -1379,7 +1379,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.14
+              YZ ETH Studio v0.3.16
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1582,52 +1582,7 @@ export default function App() {
                   </>
                 )}
 
-                {/* Recent Activity */}
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#8B4513', mb: 2 }}>
-                  Recent Activity
-                </Typography>
-                <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-                  {transactions.slice(-5).reverse().map((tx, index) => (
-                    <Box
-                      key={tx.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        p: 1,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        '&:hover': { backgroundColor: '#F8F9FA' },
-                        mb: 1,
-                      }}
-                      onClick={() => setSelectedTx(tx)}
-                    >
-                      <Box sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 1,
-                        backgroundColor: tx.type === 'deployment' ? '#D2B48C' : 
-                                       tx.type === 'function_call' ? '#28A745' : '#17A2B8',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '14px',
-                      }}>
-                        {getTransactionTypeIcon(tx.type, tx)}
-                      </Box>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '12px' }}>
-                          {tx.type === 'deployment' ? 'Contract Deployed' :
-                           tx.type === 'function_call' ? `${tx.functionName}()` :
-                           tx.type}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#6C757D' }}>
-                          {formatId(tx.id)} • {tx.status}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
+
               </Box>
             )}
 

@@ -1,16 +1,49 @@
 # AI Session Context - YZ-ETH Blockchain Simulator
 
 ## **Project Status**
-- **Current Version**: `v0.3.14`
-- **Last Updated**: August 11, 2025 at 05:23 PM  
+- **Current Version**: `v0.3.16`
+- **Last Updated**: August 12, 2025 at 12:52 PM  
 - **Phase**: 4 - Multi-file Support & Optimization (In Progress) - ✅ Architecture Cleanup Complete
 - **Status**: ✅ **OPERATIONAL** - All core features working with real-time synchronization
 
 **⚠️ IMPORTANT**: Always update the "Last Updated" field with the current date and time when making any version changes or significant updates to this file.
 
+## 📞 **Instructions for New AI Sessions**
+
+When continuing work on this project:
+
+1. **Read this entire file** to understand current refactoring status
+2. **Check current version** in `package.json` and increment patch version for each change (v0.1.x pattern)
+3. **PRIORITIZE Model-View refactoring** - do not implement features until v0.1.3 is complete
+4. **Focus on current phase** from the Implementation Plan above
+5. **Maintain code quality** with TypeScript strict mode and comprehensive error handling
+6. **Test thoroughly** during refactoring to ensure no functionality is lost
+
+**This file should be updated with each significant change or analysis to maintain context continuity.** 
+
+### **⚠️ CRITICAL: Communication Guidelines**
+- **NEVER claim fixes are "working properly" or "completed"** without user verification
+- **Instead state**: "I have made the following changes {short description}, please verify that this is correct"
+- **Be accurate about implementation status** - describe what was changed, not assumed outcomes
+- **Continue detailed technical reporting** but avoid definitive success claims
+- **Wait for user confirmation** before declaring issues resolved
+
+### **⚠️ CRITICAL: Common User Requests & Context**
+- **"Add new features"** → ❌ STOP: Explain that features must wait until Model-View refactoring is complete (v0.1.3)
+- **"Continue blockchain analysis work"** → ❌ REDIRECT: Focus on refactoring first, then analytics can be properly implemented
+- **"Fix deployment issues"** → ✅ OK: Address any deployment issues that affect refactoring work
+- **"Improve performance"** → ⚠️ PARTIAL: Only performance improvements that support refactoring goals
+
+### **🎯 Current Refactoring Status**
+- **v0.1.0**: Model infrastructure creation (IN PROGRESS)
+- **Next**: Core state migration (v0.1.1)
+- **Goal**: Complete Model-View separation by v0.1.3
+- **Then**: All planned features can be implemented cleanly on the new architecture
+
 ### **📝 CRITICAL: Documentation Requirements**
 - **ALWAYS run `node get-current-time.js`** to get accurate timestamps
 - **ALWAYS update `AI_SESSION_CONTEXT.md`** "Last Updated" field after any change
+- **ALWAYS update `README.md`** "Version" field after any change
 - **ALWAYS update `conversation.md`** with detailed conversation summaries after each session (**APPEND to end of file for speed**, don't use search/replace)
 - **ALWAYS increment version number** for every change (patch increment: 0.1.45 → 0.1.46)
 - **ALWAYS update the version and documentation after every change.**
@@ -73,7 +106,7 @@ YZ-ETH is a comprehensive web-based Ethereum blockchain simulator that allows mu
 - **Responsive UI**: Modern Material-UI interface with mobile support
 - **Transaction Slider**: Visual transaction timeline with contract execution
 - **Function Execution**: Interactive contract function calls with parameter input
-- **Multiuser/Consensus: Multiple simultaneous users allow all contracts to be immediately shared with bit identical computation and resulting block hashes
+- **Multiuser/Consensus**: Multiple simultaneous users allow all contracts to be immediately shared with bit identical computation and resulting block hashes
 
 ### **✅ Technical Infrastructure**
 - **Build System**: Vite-based with TypeScript support
@@ -470,36 +503,3 @@ git push origin main # Triggers GitHub Actions deployment
 
 ---
 
-## 📞 **Instructions for New AI Sessions**
-
-When continuing work on this project:
-
-1. **Read this entire file** to understand current refactoring status
-2. **Check current version** in `package.json` and increment patch version for each change (v0.1.x pattern)
-3. **PRIORITIZE Model-View refactoring** - do not implement features until v0.1.3 is complete
-4. **Focus on current phase** from the Implementation Plan above
-5. **Maintain code quality** with TypeScript strict mode and comprehensive error handling
-6. **Test thoroughly** during refactoring to ensure no functionality is lost
-
-### **⚠️ CRITICAL: Communication Guidelines**
-- **NEVER claim fixes are "working properly" or "completed"** without user verification
-- **Instead state**: "I have made the following changes {short description}, please verify that this is correct"
-- **Be accurate about implementation status** - describe what was changed, not assumed outcomes
-- **Continue detailed technical reporting** but avoid definitive success claims
-- **Wait for user confirmation** before declaring issues resolved
-
-### **⚠️ CRITICAL: Common User Requests & Context**
-- **"Add new features"** → ❌ STOP: Explain that features must wait until Model-View refactoring is complete (v0.1.3)
-- **"Continue blockchain analysis work"** → ❌ REDIRECT: Focus on refactoring first, then analytics can be properly implemented
-- **"Fix deployment issues"** → ✅ OK: Address any deployment issues that affect refactoring work
-- **"Improve performance"** → ⚠️ PARTIAL: Only performance improvements that support refactoring goals
-
-### **🎯 Current Refactoring Status**
-- **v0.1.0**: Model infrastructure creation (IN PROGRESS)
-- **Next**: Core state migration (v0.1.1)
-- **Goal**: Complete Model-View separation by v0.1.3
-- **Then**: All planned features can be implemented cleanly on the new architecture
-
----
-
-**This file should be updated with each significant change or analysis to maintain context continuity.** 
