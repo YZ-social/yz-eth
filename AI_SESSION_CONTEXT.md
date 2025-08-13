@@ -1,8 +1,8 @@
 # AI Session Context - YZ-ETH Blockchain Simulator
 
 ## **Project Status**
-- **Current Version**: `v0.3.16`
-- **Last Updated**: August 12, 2025 at 12:52 PM  
+- **Current Version**: `v0.3.20`
+- **Last Updated**: August 13, 2025 at 03:21 PM  
 - **Phase**: 4 - Multi-file Support & Optimization (In Progress) - ✅ Architecture Cleanup Complete
 - **Status**: ✅ **OPERATIONAL** - All core features working with real-time synchronization
 
@@ -123,6 +123,11 @@ YZ-ETH is a comprehensive web-based Ethereum blockchain simulator that allows mu
 **⚠️ IMPORTANT**: Do not implement any of these features until Phases 1-4 of the Model-View refactoring are complete. The current architecture cannot support these features effectively.
 
 ## **🎯 Priority 1: Essential Analytics & Development Tools** *(Post-Refactoring v0.2.x)*
+
+Console enhancement
+- resize bar to grow/shrink
+- scrollable - don't delete console data, just append
+- display contract results
 
 ### **📊 Blockchain Analytics Dashboard**
 **Status**: MISSING - Critical for blockchain exploration

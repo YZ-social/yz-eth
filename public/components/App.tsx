@@ -45,7 +45,7 @@ import {
   Tab,
   Tabs,
 } from '@mui/material'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { BlockManager } from '../../src/blockManager'
 import { SolidityExecutor } from '../../src/solidityExecutor'
 import { AccountManagement, CodeEditor, TransferModal } from './index'
@@ -965,6 +965,55 @@ export default function App() {
   // Console output state - moved from CodeEditor
   const [consoleOutput, setConsoleOutput] = useState('');
   const [consoleLoading, setConsoleLoading] = useState(false);
+  
+  // Splitter state for resizing between editor and console
+  const [editorConsoleRatio, setEditorConsoleRatio] = useState(70); // 70% editor, 30% console
+  const editorConsoleRef = useRef<HTMLDivElement>(null);
+  const isDraggingSplitter = useRef(false);
+  const startSplitterY = useRef(0);
+  const startRatio = useRef(70);
+
+  // Splitter mouse event handlers
+  const handleSplitterMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingSplitter.current || !editorConsoleRef.current) return;
+
+    e.preventDefault();
+    const rect = editorConsoleRef.current.getBoundingClientRect();
+    const deltaY = e.clientY - startSplitterY.current;
+    const containerHeight = rect.height;
+    const deltaPercent = (deltaY / containerHeight) * 100;
+    const newRatio = startRatio.current + deltaPercent;
+
+    // Constrain between 20% and 80% for editor
+    const constrainedRatio = Math.min(Math.max(newRatio, 20), 80);
+    setEditorConsoleRatio(constrainedRatio);
+  }, []);
+
+  const handleSplitterMouseUp = useCallback(() => {
+    isDraggingSplitter.current = false;
+    document.body.style.cursor = 'default';
+    document.body.style.userSelect = 'auto';
+  }, []);
+
+  const handleSplitterMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingSplitter.current = true;
+    startSplitterY.current = e.clientY;
+    startRatio.current = editorConsoleRatio;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  // Setup global mouse event listeners for splitter
+  useEffect(() => {
+    document.addEventListener('mousemove', handleSplitterMouseMove);
+    document.addEventListener('mouseup', handleSplitterMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleSplitterMouseMove);
+      document.removeEventListener('mouseup', handleSplitterMouseUp);
+    };
+  }, [handleSplitterMouseMove, handleSplitterMouseUp]);
 
   useEffect(() => {
     const init = async () => {
@@ -1379,7 +1428,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.16
+              YZ ETH Studio v0.3.20
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1664,9 +1713,18 @@ export default function App() {
         </Box>
 
         {/* Main Content Area */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box 
+          ref={editorConsoleRef}
+          sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        >
           {/* Code Editor */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Box sx={{ 
+            height: `${editorConsoleRatio}%`, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            overflow: 'hidden',
+            minHeight: '150px'
+          }}>
             {/* Button Bar */}
             <Box sx={{ 
               display: 'flex', 
@@ -1683,51 +1741,68 @@ export default function App() {
                   setConsoleLoading(true);
                   setConsoleOutput('');
                   try {
-                    // First compile the contract using the executor
-                    const compiledContracts = await executor.compileSolidity(editorCode);
-                    if (compiledContracts.length === 0) {
-                      setConsoleOutput('❌ Compilation failed: No contracts found in the code');
-                      return;
-                    }
-
-                    // Get the first compiled contract
-                    const contract = compiledContracts[0];
-
-                    // Deploy the contract using Multisynq publish
-                    const deploymentData = {
-                      contractName: contract.contractName || 'UnnamedContract',
-                      bytecode: contract.bytecode,
-                      abi: contract.abi || [],
-                      from: "0x1234567890123456789012345678901234567890", // Default account
-                      sourceCode: editorCode
-                    };
-
-                    console.log("App: Publishing contract deployment through Multisynq:", deploymentData);
-                    publish('blockchain', 'deployContract', deploymentData);
-
-                    // Execute main function if it exists
-                    const mainFunction = contract.abi.find(
-                      (item: any) =>
-                        item.type === 'function' &&
-                        (item.name === 'main' || item.name === 'test' || item.name === 'run'),
-                    );
-
-                    if (mainFunction) {
-                      // Create execution request
-                      const executionData = {
-                        contractName: contract.contractName || 'UnnamedContract',
-                        functionName: mainFunction.name,
-                        functionArgs: [], // Empty args for main/test/run functions
-                        from: "0x1234567890123456789012345678901234567890",
-                        abi: contract.abi
-                      };
-
-                      console.log("App: Publishing contract execution through Multisynq:", executionData);
-                      publish('blockchain', 'executeTransaction', executionData);
+                    // Use the real SolidityExecutor to deploy and execute the contract
+                    console.log("App: Executing contract with real SolidityExecutor...");
+                    const result = await executor.executeSolidity(editorCode);
+                    
+                    if (result.success) {
+                      let output = '🚀 Contract deployment & execution successful!\n';
+                      output += `📊 Gas used: ${result.gasUsed.toString()}\n`;
                       
-                      setConsoleOutput('🚀 Contract deployment & execution submitted to blockchain!\n⏳ Two publish events sent (deploy + execute)...\n💡 Click "Mine Block" in the status bar to process immediately, or wait up to 15 seconds for auto-mining.\n🔧 Main function "' + mainFunction.name + '" will be executed after deployment.');
+                      if (result.contractAddress) {
+                        output += `📍 Contract address: ${result.contractAddress}\n`;
+                      }
+                      
+                      if (result.output) {
+                        output += `\n${result.output}`;
+                      }
+                      
+                      // Log to system console for debugging
+                      console.log("=== CONTRACT EXECUTION RESULTS ===");
+                      console.log("Success:", result.success);
+                      console.log("Gas used:", result.gasUsed.toString());
+                      console.log("Contract address:", result.contractAddress);
+                      console.log("Output:", result.output);
+                      console.log("Return value included in output:", result.output?.includes("Return value:"));
+                      console.log("================================");
+                      
+                      // Also publish to Multisynq for UI updates
+                      const compiledContracts = await executor.compileSolidity(editorCode);
+                      if (compiledContracts.length > 0) {
+                        const contract = compiledContracts[0];
+                        const deploymentData = {
+                          contractName: contract.contractName || 'UnnamedContract',
+                          bytecode: contract.bytecode,
+                          abi: contract.abi || [],
+                          from: "0x1234567890123456789012345678901234567890",
+                          sourceCode: editorCode
+                        };
+                        
+                        publish('blockchain', 'deployContract', deploymentData);
+                        
+                        // Execute main function if it exists
+                        const mainFunction = contract.abi.find(
+                          (item: any) =>
+                            item.type === 'function' &&
+                            (item.name === 'main' || item.name === 'test' || item.name === 'run'),
+                        );
+
+                        if (mainFunction) {
+                          const executionData = {
+                            contractName: contract.contractName || 'UnnamedContract',
+                            functionName: mainFunction.name,
+                            functionArgs: [],
+                            from: "0x1234567890123456789012345678901234567890",
+                            abi: contract.abi
+                          };
+                          
+                          publish('blockchain', 'executeTransaction', executionData);
+                        }
+                      }
+                      
+                      setConsoleOutput(output);
                     } else {
-                      setConsoleOutput('🚀 Contract deployment submitted to blockchain!\n⏳ Deploy event published...\n💡 Click "Mine Block" in the status bar to process immediately, or wait up to 15 seconds for auto-mining.\n📝 No main function found to execute.');
+                      setConsoleOutput(`❌ Deployment failed: ${result.error || 'Unknown error'}\n${result.output || ''}`);
                     }
                   } catch (error: any) {
                     setConsoleOutput('❌ Execution failed: ' + (error.message || 'An error occurred while deploying and executing the contract'));
@@ -1778,15 +1853,42 @@ export default function App() {
             </Box>
           </Box>
 
+          {/* Splitter */}
+          <Box
+            sx={{
+              height: '8px',
+              backgroundColor: '#8B4513',
+              cursor: 'ns-resize',
+              '&:hover': {
+                backgroundColor: '#A0522D',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                width: '30px',
+                height: '3px',
+                backgroundColor: 'white',
+                borderRadius: '2px',
+                opacity: 0.7,
+              },
+            }}
+            onMouseDown={handleSplitterMouseDown}
+          />
+
           {/* Console at bottom */}
           <Box
             sx={{
-              height: 200,
-              borderTop: '1px solid #E5E5E5',
+              height: `${100 - editorConsoleRatio}%`,
               backgroundColor: '#1e1e1e',
               display: 'flex',
               flexDirection: 'column',
-              flexShrink: 0,
+              overflow: 'hidden',
+              minHeight: '100px'
             }}
           >
             <Box sx={{

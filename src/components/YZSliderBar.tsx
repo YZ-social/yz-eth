@@ -322,7 +322,7 @@ const YZSliderBar: React.FC = () => {
     const resizeObserver = new ResizeObserver(entries => {
       for (let entry of entries) {
         const width = entry.contentRect.width;
-        console.log("=== RESIZE OBSERVER ===", { width });
+        // console.log("=== RESIZE OBSERVER ===", { width });
         setContainerWidth(width);
       }
     });
