@@ -1428,7 +1428,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.20
+              YZ ETH Studio v0.3.25
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1766,7 +1766,7 @@ export default function App() {
                       console.log("Return value included in output:", result.output?.includes("Return value:"));
                       console.log("================================");
                       
-                      // Also publish to Multisynq for UI updates
+                      // Also publish to Multisynq for UI updates with REAL gas data
                       const compiledContracts = await executor.compileSolidity(editorCode);
                       if (compiledContracts.length > 0) {
                         const contract = compiledContracts[0];
@@ -1775,7 +1775,9 @@ export default function App() {
                           bytecode: contract.bytecode,
                           abi: contract.abi || [],
                           from: "0x1234567890123456789012345678901234567890",
-                          sourceCode: editorCode
+                          sourceCode: editorCode,
+                          // Include the REAL gas usage from VM execution
+                          gasUsed: result.gasUsed
                         };
                         
                         publish('blockchain', 'deployContract', deploymentData);
@@ -1793,7 +1795,9 @@ export default function App() {
                             functionName: mainFunction.name,
                             functionArgs: [],
                             from: "0x1234567890123456789012345678901234567890",
-                            abi: contract.abi
+                            abi: contract.abi,
+                            // Include the REAL gas usage from VM execution
+                            gasUsed: result.gasUsed
                           };
                           
                           publish('blockchain', 'executeTransaction', executionData);

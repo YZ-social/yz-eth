@@ -169,22 +169,49 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
           </Typography>
         )}
       </Box>
-      {/* Bottom section: Timestamp */}
-      <Box sx={{ width: '100%' }}>
+      {/* Bottom section: Timestamp left, Gas right */}
+      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.5 }}>
         <Typography
           variant="caption"
           sx={{
             color: '#888',
-            fontSize: '0.6em',
+            fontSize: '0.55em',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             lineHeight: 1.1,
-            display: 'block'
+            flex: 1,
+            minWidth: 0
           }}
         >
-          {formatTimestamp(tx.timestamp)}
+          {formatTimestamp(tx.timestamp).replace(/:\d{2}$/, '')} {/* Remove seconds for space */}
         </Typography>
+        {tx.gasUsed && !pending && (
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#666',
+              fontSize: '0.5em',
+              whiteSpace: 'nowrap',
+              lineHeight: 1.1,
+              fontWeight: 'bold',
+              maxWidth: '45px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            ⛽{typeof tx.gasUsed === 'bigint' ? 
+              (Number(tx.gasUsed) > 999999 ? 
+                Math.round(Number(tx.gasUsed) / 1000) + 'k' : 
+                Number(tx.gasUsed).toLocaleString()
+              ) : 
+              (tx.gasUsed > 999999 ? 
+                Math.round(tx.gasUsed / 1000) + 'k' : 
+                tx.gasUsed.toLocaleString()
+              )
+            }
+          </Typography>
+        )}
       </Box>
     </Box>
   );
@@ -234,7 +261,10 @@ const YZSliderBar: React.FC = () => {
   
   // Compute all transactions (executed + pending) for slider logic
   const executedTxs = blocks.flatMap(block =>
-    (block.transactions || []).map((tx: any) => ({ ...tx, _block: block }))
+    (block.transactions || []).map((tx: any) => ({ 
+      ...tx, 
+      _block: block
+    }))
   );
   const pendingTxs = (blockchainState?.pendingTransactions || []).map((tx: any) => ({ ...tx }));
   const allTxs = [...executedTxs, ...pendingTxs];

@@ -127,7 +127,7 @@ class BlockchainModel extends Multisynq.Model {
         console.log("BlockchainModel: Executing transaction...", transactionData);
         
         try {
-            const { from, to, value, type, contractName, functionName } = transactionData;
+            const { from, to, value, type, contractName, functionName, gasUsed } = transactionData;
             
             if (contractName && functionName) {
                 // Handle contract function execution request
@@ -141,7 +141,7 @@ class BlockchainModel extends Multisynq.Model {
                 
                 console.log(`BlockchainModel: Found contract ${contractName} at address ${this.formatAddress(deployedContract.address)}`);
                 
-                // Create transaction record for contract function execution
+                // Create transaction record for contract function execution with REAL gas usage
                 const transaction = {
                     hash: this.generateTransactionHash(),
                     from: from || "0x1234567890123456789012345678901234567890",
@@ -152,7 +152,8 @@ class BlockchainModel extends Multisynq.Model {
                     type: "contract_execution",
                     contractName: contractName, // Add contract name for display
                     functionName: functionName, // Add function name for display
-                    timestamp: this.now() // Use Multisynq deterministic time
+                    timestamp: this.now(), // Use Multisynq deterministic time
+                    gasUsed: gasUsed || 21000 // Use REAL gas from VM execution
                 };
                 
                 // Add to pending transactions
@@ -260,7 +261,7 @@ class BlockchainModel extends Multisynq.Model {
         console.log("BlockchainModel: Deploying contract...", contractData);
         
         try {
-            const { contractName, bytecode, abi, from } = contractData;
+            const { contractName, bytecode, abi, from, gasUsed } = contractData;
             
             // Generate contract address (simplified)
             const contractAddress = this.generateContractAddress();
@@ -278,7 +279,7 @@ class BlockchainModel extends Multisynq.Model {
             
             this.contracts.push(deployedContract);
             
-            // Create deployment transaction
+            // Create deployment transaction with REAL gas usage
             const transaction = {
                 hash: deployedContract.transactionHash,
                 from: from,
@@ -288,7 +289,8 @@ class BlockchainModel extends Multisynq.Model {
                 status: "success",
                 type: "contract_deployment",
                 contractName: contractName, // Add contract name for display
-                timestamp: this.now() // Use Multisynq deterministic time
+                timestamp: this.now(), // Use Multisynq deterministic time
+                gasUsed: gasUsed || 21000 // Use REAL gas from VM execution
             };
             
             this.pendingTransactions.push(transaction);
