@@ -6993,3 +6993,136 @@ useEffect(() => {
 - **Breakpoint Crossing**: Smooth transitions across Material-UI breakpoints
 
 **Result**: The responsive tab system now handles all screen size transitions gracefully. Users can resize their browser window or rotate their device without encountering broken interface states or console errors. The Contract tab appears/disappears seamlessly while maintaining proper tab selection and content display.
+
+---
+
+## **Session 13 - Contract Tab Visual Indicator** 
+**Date**: August 16, 2025 at 07:42 PM  
+**Version**: v0.3.33 → v0.3.34
+
+### **Problem Identified**:
+
+#### **🎯 Mobile UX Enhancement Request**
+- **User Request**: "When there is any code displayed in the contract code editor, highlight the Contract tab when it is visible to show that it is populated."
+- **Use Case**: Mobile users need visual feedback to know when the Contract tab contains content
+- **Specific Scenario**: "When I am on a phone and select an example contract, the contract tab should be highlighted. If I clear the code, the contract tab should not be highlighted anymore."
+- **UX Gap**: No visual indication of Contract tab content status on mobile devices
+
+### **Technical Analysis**:
+
+#### **Mobile Navigation Challenge**
+- **Context**: Contract tab only visible on mobile (`{isMobile && <Tab label="Contract" />}`)
+- **Problem**: Users can't tell if Contract tab has content without switching to it
+- **Impact**: Poor mobile UX, requires unnecessary tab switching to check content
+- **Solution Needed**: Visual indicator that dynamically shows content presence
+
+#### **State Management Requirements**
+- **Content Detection**: Monitor `editorCode` state for non-empty content
+- **Dynamic Indicator**: Show/hide visual cue based on code presence
+- **Responsive Design**: Only apply to mobile Contract tab
+- **Real-time Updates**: Indicator updates immediately when code changes
+
+### **Completed Implementation**:
+
+#### **✅ Dynamic Visual Indicator**
+- **Green Dot Badge**: Small circular indicator appears when code is present
+- **Conditional Rendering**: Only shows when `editorCode.trim()` has content
+- **Responsive**: Only applies to mobile Contract tab
+- **Real-time**: Updates instantly when code is added/cleared
+
+### **Code Changes**:
+
+#### **Enhanced Contract Tab with Visual Indicator**
+```typescript
+{isMobile && (
+  <Tab 
+    label={
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        Contract
+        {editorCode.trim() && (
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: '#4CAF50', // Green dot to indicate content
+              flexShrink: 0
+            }}
+          />
+        )}
+      </Box>
+    }
+  />
+)}
+```
+
+#### **Design Specifications**
+- **Indicator Type**: Circular dot badge
+- **Size**: 8px diameter for subtle but visible presence
+- **Color**: `#4CAF50` (Material Design green) for positive content indication
+- **Position**: Right of "Contract" text with 8px gap
+- **Behavior**: Appears/disappears based on `editorCode.trim()` evaluation
+
+### **User Experience Improvements**:
+
+#### **Enhanced Mobile Navigation**
+- **Before Enhancement**:
+  - ❌ No visual indication of Contract tab content
+  - ❌ Users must switch tabs to check for code
+  - ❌ Unclear when Contract tab is populated
+  - ❌ Extra navigation steps required
+
+- **After Enhancement**:
+  - ✅ **Visual Content Indicator**: Green dot shows when code is present
+  - ✅ **Instant Feedback**: Indicator appears immediately when code loads
+  - ✅ **Clear Status**: Users know tab content status at a glance
+  - ✅ **Efficient Navigation**: Reduces unnecessary tab switching
+
+#### **Dynamic Behavior Examples**
+1. **Empty State**: Contract tab shows just "Contract" text
+2. **Load Example**: User selects example → green dot appears instantly
+3. **Clear Code**: User clicks Clear → green dot disappears immediately
+4. **Edit Code**: Any code changes update indicator in real-time
+
+### **Technical Benefits**:
+
+#### **Smart Content Detection**
+- **Whitespace Handling**: Uses `editorCode.trim()` to ignore empty spaces
+- **Performance**: Lightweight conditional rendering with minimal overhead
+- **Accessibility**: Visual indicator doesn't interfere with screen readers
+- **Responsive**: Only renders on mobile, no desktop impact
+
+#### **Seamless Integration**
+- **Material-UI Compliance**: Uses Box components and sx styling
+- **Theme Consistency**: Green color aligns with app's success indicators
+- **Layout Stability**: `flexShrink: 0` prevents indicator from affecting text layout
+- **Clean Code**: Conditional rendering keeps DOM clean when not needed
+
+### **Mobile UX Flow**:
+
+#### **Example Selection Workflow**
+1. **Mobile User**: Opens app on phone, sees tabs without indicators
+2. **Browse Examples**: Views Examples tab, selects "Calculator" contract
+3. **Instant Feedback**: Contract tab immediately shows green dot
+4. **Clear Understanding**: User knows Contract tab now contains code
+5. **Efficient Access**: Can switch to Contract tab with confidence
+
+#### **Code Management Workflow**
+1. **Active Development**: Contract tab shows green dot (code present)
+2. **Clear Action**: User clicks Clear button in code editor
+3. **Immediate Update**: Green dot disappears instantly
+4. **Visual Confirmation**: User sees tab is now empty without switching
+
+### **Edge Cases Handled**:
+- **Whitespace-Only Code**: `trim()` prevents false positives from spaces/newlines
+- **Rapid Changes**: Indicator updates immediately with any code state change
+- **Tab Switching**: Indicator persists correctly across tab navigation
+- **Screen Rotation**: Works seamlessly during mobile orientation changes
+
+### **Future Extensibility**:
+- **Color Coding**: Could extend to different colors for different content types
+- **Badge Text**: Could show character count or other metrics
+- **Animation**: Could add subtle fade transitions for indicator changes
+- **Multiple Indicators**: Framework supports additional status indicators
+
+**Result**: Mobile users now have clear visual feedback about Contract tab content status. The green dot indicator provides instant, intuitive understanding of when the Contract tab contains code, eliminating guesswork and improving navigation efficiency. The feature enhances mobile UX without affecting desktop users or adding complexity to the interface.

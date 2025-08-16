@@ -1436,7 +1436,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.33
+              YZ ETH Studio v0.3.34
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1489,7 +1489,26 @@ export default function App() {
             <Tab label="Session" />
             <Tab label="Accounts" />
             <Tab label="Examples" />
-            {isMobile && <Tab label="Contract" />}
+            {isMobile && (
+              <Tab 
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    Contract
+                    {editorCode.trim() && (
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: '#4CAF50', // Green dot to indicate content
+                          flexShrink: 0
+                        }}
+                      />
+                    )}
+                  </Box>
+                }
+              />
+            )}
 
           </Tabs>
 
