@@ -213,7 +213,7 @@ export const MultisynqBlockView: React.FC = () => {
           💳 Accounts: {blockchainState.accounts.length} | 
           📋 Contracts: {blockchainState.contracts.length} |
           ⏳ Pending: {blockchainState.pendingTransactions.length} |
-          💓 Heartbeat: {blockchainState.heartbeatCount}
+          📅 Session: {(blockchainState.heartbeatCount / 86400).toFixed(4)} days
         </Typography>
       </Box>
     </Paper>

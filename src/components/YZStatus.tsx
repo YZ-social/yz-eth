@@ -63,7 +63,7 @@ const YZStatus: React.FC = () => {
           🟢 YZ-ETH Multisynq Session Active
         </Typography>
         <Chip
-          label={`💓 ${blockchainState.heartbeatCount}`}
+          label={`📅 ${(blockchainState.heartbeatCount / 86400).toFixed(4)} days`}
           size="small"
           variant="filled"
           sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold' }}

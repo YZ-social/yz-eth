@@ -1428,7 +1428,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.25
+              YZ ETH Studio v0.3.27
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1524,7 +1524,7 @@ export default function App() {
                           🟢 YZ-ETH Multisynq Session Active
                         </Typography>
                         <Chip
-                          label={`💓 ${blockchainState.heartbeatCount}`}
+                          label={`📅 ${(blockchainState.heartbeatCount / 86400).toFixed(4)} days`}
                           size="small"
                           sx={{ 
                             backgroundColor: '#8B4513', 
