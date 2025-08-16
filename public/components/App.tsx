@@ -1428,7 +1428,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.27
+              YZ ETH Studio v0.3.28
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1481,6 +1481,8 @@ export default function App() {
             <Tab label="Session" />
             <Tab label="Accounts" />
             <Tab label="Examples" />
+            {isMobile && <Tab label="Contract" />}
+
           </Tabs>
 
           {/* Tab Content */}
@@ -1709,14 +1711,176 @@ export default function App() {
                 </Box>
               </Box>
             )}
+
+            {/* Contract Tab - Mobile Only */}
+            {isMobile && leftPanelTab === 3 && (
+              <Box sx={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                overflow: 'hidden', 
+                height: 'calc(100vh - 200px)',
+                p: 0
+              }}>
+                {/* Mobile Editor Header */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 1, 
+                  borderBottom: '1px solid #E5E5E5',
+                  backgroundColor: '#F8F9FA'
+                }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#8B4513' }}>
+                    Contract Editor
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={async () => {
+                        setConsoleLoading(true);
+                        setConsoleOutput('');
+                        try {
+                          const result = await executor.executeSolidity(editorCode);
+                          
+                          if (result.success) {
+                            let output = '🚀 Contract deployment & execution successful!\n';
+                            output += `📊 Gas used: ${result.gasUsed.toString()}\n`;
+                            
+                            if (result.contractAddress) {
+                              output += `📍 Contract address: ${result.contractAddress}\n`;
+                            }
+                            
+                            if (result.output) {
+                              output += `📝 Output:\n${result.output}\n`;
+                            }
+                            
+                            setConsoleOutput(output);
+                          } else {
+                            setConsoleOutput(`❌ Deployment failed: ${result.error || 'Unknown error'}\n${result.output || ''}`);
+                          }
+                        } catch (error: any) {
+                          setConsoleOutput(`❌ Error: ${error.message || 'An error occurred'}`);
+                        } finally {
+                          setConsoleLoading(false);
+                        }
+                      }}
+                      sx={{
+                        backgroundColor: '#4CAF50',
+                        fontSize: '11px',
+                        py: 0.5,
+                        '&:hover': { backgroundColor: '#45A049' },
+                      }}
+                    >
+                      Deploy
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setEditorCode('');
+                        setConsoleOutput('');
+                      }}
+                      sx={{
+                        borderColor: '#8B4513',
+                        color: '#8B4513',
+                        fontSize: '11px',
+                        py: 0.5,
+                        '&:hover': { 
+                          borderColor: '#6D3710',
+                          backgroundColor: 'rgba(139, 69, 19, 0.1)'
+                        },
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </Box>
+                </Box>
+
+                {/* Mobile Code Editor */}
+                <Box sx={{ 
+                  height: `${editorConsoleRatio}%`, 
+                  overflow: 'hidden',
+                  minHeight: '150px'
+                }}>
+                  <CodeEditor
+                    executor={executor}
+                    blockManager={blockManager}
+                    code={editorCode}
+                    setCode={setEditorCode}
+                    setConsoleOutput={setConsoleOutput}
+                    setConsoleLoading={setConsoleLoading}
+                  />
+                </Box>
+
+                {/* Mobile Splitter */}
+                <Box
+                  sx={{
+                    height: '3px',
+                    backgroundColor: '#8B4513',
+                    cursor: 'row-resize',
+                    '&:hover': { backgroundColor: '#6D3710' }
+                  }}
+                  onMouseDown={handleSplitterMouseDown}
+                />
+
+                {/* Mobile Console */}
+                <Box sx={{
+                  height: `${100 - editorConsoleRatio}%`,
+                  backgroundColor: '#1e1e1e',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  minHeight: '100px'
+                }}>
+                  <Box sx={{
+                    backgroundColor: '#333',
+                    color: '#FFFFFF',
+                    p: 0.5,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '11px',
+                  }}>
+                    <Typography sx={{ fontSize: '11px' }}>📱 Mobile Console</Typography>
+                    <Chip
+                      label={consoleLoading ? "WORKING" : "READY"}
+                      size="small"
+                      sx={{
+                        backgroundColor: consoleLoading ? '#FF9800' : '#28A745',
+                        color: '#FFFFFF',
+                        fontSize: '9px',
+                        height: 18,
+                      }}
+                    />
+                  </Box>
+                  <Box sx={{ 
+                    flex: 1, 
+                    overflow: 'auto', 
+                    backgroundColor: '#1e1e1e',
+                    fontFamily: 'monospace',
+                    fontSize: '11px',
+                    color: '#FFFFFF',
+                    p: 0.5,
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {consoleOutput || 'Mobile console ready...\nTap Deploy to run contracts.'}
+                  </Box>
+                </Box>
+              </Box>
+            )}
+
+
           </Box>
         </Box>
 
-        {/* Main Content Area */}
-        <Box 
-          ref={editorConsoleRef}
-          sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-        >
+        {/* Main Content Area - Hidden on Mobile */}
+        {!isMobile && (
+          <Box 
+            ref={editorConsoleRef}
+            sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          >
           {/* Code Editor */}
           <Box sx={{ 
             height: `${editorConsoleRatio}%`, 
@@ -1943,6 +2107,7 @@ export default function App() {
             </Box>
           </Box>
         </Box>
+        )}
       </Box>
 
       {/* Fixed YZ Block Slider at bottom of page */}
