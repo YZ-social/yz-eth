@@ -26,9 +26,9 @@ import TransactionDetailsModal from './TransactionDetailsModal';
 import { formatHash, formatAddress, formatId } from '../utils/formatters';
 
 // Constants for the slider bar
-const TILE_WIDTH = 140;
-const TILE_GAP = 8;
-const BAR_HEIGHT = 100;
+const TILE_WIDTH = 110; // Reduced from 140
+const TILE_GAP = 6; // Reduced from 8
+const BAR_HEIGHT = 75; // Reduced from 100
 const OVERSCAN = 2; // Render extra tiles outside viewport for smooth scrolling
 
 // Transaction tile component (for both executed and pending)
@@ -75,58 +75,61 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
       sx={{
         width: `${TILE_WIDTH}px`,
         height: `${BAR_HEIGHT}px`,
-        border: '2px solid #e0e0e0',
-        borderRadius: '8px',
+        border: '1px solid #e0e0e0', // Reduced border width
+        borderRadius: '6px', // Reduced radius
         bgcolor: tileBg,
         borderColor: borderColor,
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        p: 1,
+        p: 0.6, // Reduced padding
         transition: 'all 0.2s ease',
-        boxShadow: pending ? '0 2px 4px rgba(255,152,0,0.3)' : 'none',
+        boxShadow: pending ? '0 1px 2px rgba(255,152,0,0.3)' : 'none',
         '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+          transform: 'translateY(-1px)', // Reduced hover effect
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           bgcolor: pending ? '#ffe0b2' : '#dcedc8',
         },
       }}
     >
       {/* Top section: TX number */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '12px' }}>
         <Typography
           variant="caption"
           sx={{
             color: labelColor,
-            fontSize: '0.7em',
-            fontWeight: 'bold'
+            fontSize: '0.6em', // Reduced from 0.7em
+            fontWeight: 'bold',
+            lineHeight: 1
           }}
         >
-          TX {txNumber}
+          TX{txNumber}
         </Typography>
         <Typography
           variant="caption"
           sx={{
             color: labelColor,
-            fontSize: '0.6em',
-            fontWeight: 'bold'
+            fontSize: '0.5em', // Reduced from 0.6em
+            fontWeight: 'bold',
+            lineHeight: 1
           }}
         >
-          {pending ? 'Pending' : 'Executed'}
+          {pending ? 'PEND' : 'EXEC'}
         </Typography>
       </Box>
 
       {/* Middle section: Transaction info */}
-      <Box sx={{ textAlign: 'center', my: 0.5, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Box sx={{ textAlign: 'center', my: 0.3, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Typography
           variant="caption"
           sx={{
             color: txInfo.color,
-            fontSize: '0.65em',
+            fontSize: '0.55em', // Reduced from 0.65em
             fontWeight: 'bold',
             display: 'inline-block',
-            mb: 0.5
+            mb: 0.2, // Reduced margin
+            lineHeight: 1
           }}
         >
           {txInfo.icon} {txInfo.label}
@@ -141,28 +144,30 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
               onClick(tx);
             }}
             sx={{
-              fontSize: '0.6em',
-              minHeight: '20px',
-              py: 0.3,
-              px: 0.8,
+              fontSize: '0.5em', // Reduced from 0.6em
+              minHeight: '16px', // Reduced from 20px
+              py: 0.2, // Reduced padding
+              px: 0.6,
               bgcolor: '#2196f3',
               '&:hover': { bgcolor: '#1976d2' },
-              textTransform: 'none'
+              textTransform: 'none',
+              lineHeight: 1
             }}
           >
-            🔧 {tx.contractName || 'Contract'}
+            🔧 {(tx.contractName || 'Contract').substring(0, 8)}
           </Button>
         ) : (
           <Typography
             variant="caption"
             sx={{
               fontFamily: 'monospace',
-              fontSize: '0.6em',
+              fontSize: '0.5em', // Reduced from 0.6em
               color: '#666',
               display: 'block',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              lineHeight: 1.1
             }}
           >
             {txInfo.details}
@@ -170,44 +175,48 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
         )}
       </Box>
       {/* Bottom section: Timestamp left, Gas right */}
-      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.5 }}>
+      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.3, minHeight: '10px' }}>
         <Typography
           variant="caption"
           sx={{
             color: '#888',
-            fontSize: '0.55em',
+            fontSize: '0.45em', // Reduced from 0.55em
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            lineHeight: 1.1,
+            lineHeight: 1,
             flex: 1,
             minWidth: 0
           }}
         >
-          {formatTimestamp(tx.timestamp).replace(/:\d{2}$/, '')} {/* Remove seconds for space */}
+          {formatTimestamp(tx.timestamp).replace(/:\d{2}$/, '').replace(/\s/g, '')} {/* Remove seconds and spaces */}
         </Typography>
         {tx.gasUsed && !pending && (
           <Typography
             variant="caption"
             sx={{
               color: '#666',
-              fontSize: '0.5em',
+              fontSize: '0.4em', // Reduced from 0.5em
               whiteSpace: 'nowrap',
-              lineHeight: 1.1,
+              lineHeight: 1,
               fontWeight: 'bold',
-              maxWidth: '45px',
+              maxWidth: '35px', // Reduced from 45px
               overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}
           >
             ⛽{typeof tx.gasUsed === 'bigint' ? 
-              (Number(tx.gasUsed) > 999999 ? 
+              (Number(tx.gasUsed) > 99999 ? 
                 Math.round(Number(tx.gasUsed) / 1000) + 'k' : 
-                Number(tx.gasUsed).toLocaleString()
+                Number(tx.gasUsed) > 9999 ?
+                  Math.round(Number(tx.gasUsed) / 1000) + 'k' :
+                  Number(tx.gasUsed).toLocaleString()
               ) : 
-              (tx.gasUsed > 999999 ? 
+              (tx.gasUsed > 99999 ? 
                 Math.round(tx.gasUsed / 1000) + 'k' : 
-                tx.gasUsed.toLocaleString()
+                tx.gasUsed > 9999 ?
+                  Math.round(tx.gasUsed / 1000) + 'k' :
+                  tx.gasUsed.toLocaleString()
               )
             }
           </Typography>
@@ -496,17 +505,57 @@ const YZSliderBar: React.FC = () => {
     setIsDragging(false);
   }, []);
 
-  // Mouse event listeners
+  // Touch drag handling for mobile
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    markUserInteraction();
+    setIsDragging(true);
+    const touch = e.touches[0];
+    dragStartX.current = touch.clientX;
+    scrollStart.current = scrollLeft;
+    setHasMoved(false);
+  }, [scrollLeft, markUserInteraction]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - dragStartX.current;
+    const newScrollLeft = scrollStart.current - deltaX;
+    
+    if (Math.abs(deltaX) > 3) {
+      setHasMoved(true);
+    }
+    
+    scrollToPosition(newScrollLeft);
+  }, [isDragging, scrollToPosition]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Mouse and touch event listeners
   useEffect(() => {
     if (isDragging) {
+      // Mouse events
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      
+      // Touch events for mobile
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
+      
       return () => {
+        // Clean up mouse events
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
+        
+        // Clean up touch events
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   // Prevent click after drag
   const shouldPreventClick = useCallback(() => {
@@ -778,7 +827,7 @@ const YZSliderBar: React.FC = () => {
         bgcolor: '#fff',
         borderTop: '2px solid #B05823',
         boxShadow: '0 -2px 8px rgba(0,0,0,0.08)',
-        height: `${BAR_HEIGHT + 50}px`,
+        height: `${BAR_HEIGHT + 30}px`, // Reduced from +50
         display: 'flex',
         alignItems: 'center',
         px: 2,
@@ -796,11 +845,13 @@ const YZSliderBar: React.FC = () => {
       <Box
         ref={barRef}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
         sx={{
           flex: 1,
-          height: `${BAR_HEIGHT + 30}px`,
+          height: `${BAR_HEIGHT + 20}px`, // Reduced from +30
           cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none',
+          touchAction: 'pan-x', // Allow horizontal panning for touch devices
           overflow: 'hidden',
           position: 'relative',
           display: 'flex',

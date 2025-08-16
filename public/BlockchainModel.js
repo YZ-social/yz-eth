@@ -229,7 +229,8 @@ class BlockchainModel extends Multisynq.Model {
                     value,
                     status: "success",
                     type: "eth_transfer",
-                    timestamp: this.now() // Use Multisynq deterministic time
+                    timestamp: this.now(), // Use Multisynq deterministic time
+                    gasUsed: BigInt(21000) // Standard ETH transfer gas
                 };
                 
                 // Add to pending transactions

@@ -1181,6 +1181,14 @@ export default function App() {
     setLeftPanelTab(newValue);
   };
 
+  // Handle responsive tab switching - reset to Session tab when transitioning from mobile to desktop
+  useEffect(() => {
+    // If we're on desktop and the Contract tab (index 3) is selected, switch to Session tab (index 0)
+    if (!isMobile && leftPanelTab === 3) {
+      setLeftPanelTab(0);
+    }
+  }, [isMobile, leftPanelTab]);
+
   const handleCloseTransactionModal = () => {
     setSelectedTx(null);
   };
@@ -1428,7 +1436,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.28
+              YZ ETH Studio v0.3.33
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1753,7 +1761,54 @@ export default function App() {
                             }
                             
                             if (result.output) {
-                              output += `📝 Output:\n${result.output}\n`;
+                              output += `\n${result.output}`;
+                            }
+                            
+                            // Log to system console for debugging
+                            console.log("=== MOBILE CONTRACT EXECUTION RESULTS ===");
+                            console.log("Success:", result.success);
+                            console.log("Gas used:", result.gasUsed.toString());
+                            console.log("Contract address:", result.contractAddress);
+                            console.log("Output:", result.output);
+                            console.log("Return value included in output:", result.output?.includes("Return value:"));
+                            console.log("======================================");
+                            
+                            // Also publish to Multisynq for UI updates with REAL gas data
+                            const compiledContracts = await executor.compileSolidity(editorCode);
+                            if (compiledContracts.length > 0) {
+                              const contract = compiledContracts[0];
+                              const deploymentData = {
+                                contractName: contract.contractName || 'UnnamedContract',
+                                bytecode: contract.bytecode,
+                                abi: contract.abi || [],
+                                from: "0x1234567890123456789012345678901234567890",
+                                sourceCode: editorCode,
+                                // Include the REAL gas usage from VM execution
+                                gasUsed: result.gasUsed
+                              };
+                              
+                              publish('blockchain', 'deployContract', deploymentData);
+                              
+                              // Execute main function if it exists
+                              const mainFunction = contract.abi.find(
+                                (item: any) =>
+                                  item.type === 'function' &&
+                                  (item.name === 'main' || item.name === 'test' || item.name === 'run'),
+                              );
+
+                              if (mainFunction) {
+                                const executionData = {
+                                  contractName: contract.contractName || 'UnnamedContract',
+                                  functionName: mainFunction.name,
+                                  functionArgs: [],
+                                  from: "0x1234567890123456789012345678901234567890",
+                                  abi: contract.abi,
+                                  // Include the REAL gas usage from VM execution
+                                  gasUsed: result.gasUsed
+                                };
+                                
+                                publish('blockchain', 'executeTransaction', executionData);
+                              }
                             }
                             
                             setConsoleOutput(output);
@@ -1761,7 +1816,7 @@ export default function App() {
                             setConsoleOutput(`❌ Deployment failed: ${result.error || 'Unknown error'}\n${result.output || ''}`);
                           }
                         } catch (error: any) {
-                          setConsoleOutput(`❌ Error: ${error.message || 'An error occurred'}`);
+                          setConsoleOutput('❌ Execution failed: ' + (error.message || 'An error occurred while deploying and executing the contract'));
                         } finally {
                           setConsoleLoading(false);
                         }
