@@ -1239,6 +1239,10 @@ export default function App() {
 
   const handleExampleSelect = (contract: any) => {
     setEditorCode(contract.code)
+    // Automatically switch to Contract tab in mobile/narrow mode
+    if (isMobile) {
+      setLeftPanelTab(3); // Contract tab index
+    }
   }
 
   // Contract execution dialog handlers

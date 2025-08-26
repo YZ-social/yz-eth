@@ -4,7 +4,7 @@
 
 # YZ ETH Blockchain Simulator
 
-[![Version](https://img.shields.io/badge/version-0.3.47-blue.svg)](https://github.com/YZ-social/yz-eth)
+[![Version](https://img.shields.io/badge/version-0.3.48-blue.svg)](https://github.com/YZ-social/yz-eth)
 [![License](https://img.shields.io/badge/license-MPL--2.0-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json)
 [![Deploy](https://github.com/YZ-social/yz-eth/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/YZ-social/yz-eth/actions)
@@ -580,7 +580,7 @@ Advanced data structures:
 
 ## 🔧 Development Status
 
-**Current Version**: `v0.3.47` (Stable - Real-Time Collaboration)
+**Current Version**: `v0.3.48` (Stable - Real-Time Collaboration)
 
 ### ✅ **Implemented Features**
 - ✅ Solidity compilation and execution
