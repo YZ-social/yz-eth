@@ -2,6 +2,7 @@ import React from 'react';
 import { Paper, Typography, Box, Chip, CircularProgress, Button } from '@mui/material';
 import { useMultisynq } from './YZProvider';
 import { formatHash } from '../utils/formatters';
+import packageJson from '../../package.json';
 
 const YZStatus: React.FC = () => {
   const { isLoading, isConnected, error, blockchainState, publish } = useMultisynq();
@@ -60,7 +61,7 @@ const YZStatus: React.FC = () => {
       {/* First row: Status and stats */}
       <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" mb={0.5}>
         <Typography variant="body2" fontWeight="bold">
-          🟢 YZ-ETH Multisynq Session Active
+          🟢 YZ-ETH Session Active
         </Typography>
         <Chip
           label={`📅 ${(blockchainState.heartbeatCount / 86400).toFixed(4)} days`}
@@ -105,11 +106,24 @@ const YZStatus: React.FC = () => {
         />
       </Box>
       
-      {/* Second row: Block info and Mine button */}
+      {/* Second row: Block info, Version, and Mine button */}
       <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
-        <Typography variant="caption" color="inherit">
-          Block #{blockchainState.currentBlockNumber} | Hash: {blockchainState.blocks.length > 0 ? formatHash(blockchainState.blocks[blockchainState.blocks.length - 1]?.hash) : 'N/A'}
-        </Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="caption" color="inherit">
+            Block #{blockchainState.currentBlockNumber} | Hash: {blockchainState.blocks.length > 0 ? formatHash(blockchainState.blocks[blockchainState.blocks.length - 1]?.hash) : 'N/A'}
+          </Typography>
+          <Chip
+            label={`v${packageJson.version}`}
+            size="small"
+            variant="filled"
+            sx={{ 
+              backgroundColor: '#8B4513', 
+              color: '#FFFFFF', 
+              fontWeight: 'bold',
+              fontSize: '11px'
+            }}
+          />
+        </Box>
         
         {/* Mine Block Button - always show but disable when no pending transactions */}
         <Button

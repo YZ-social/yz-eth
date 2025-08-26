@@ -16,7 +16,6 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material'
 import {
-  AppBar,
   Box,
   Button,
   Dialog,
@@ -31,7 +30,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Toolbar,
   Typography,
   useMediaQuery,
   useTheme,
@@ -1410,51 +1408,8 @@ export default function App() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      {/* Header */}
-      <AppBar 
-        position="fixed" 
-        sx={{ 
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: '#8B4513',
-          boxShadow: '0 2px 8px rgba(139, 69, 19, 0.1)',
-        }}
-      >
-        <Toolbar sx={{ minHeight: '60px !important', px: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{
-              width: 32,
-              height: 32,
-              backgroundColor: '#FFFFFF',
-              borderRadius: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#8B4513',
-              fontWeight: 700,
-              fontSize: '14px'
-            }}>
-              YZ
-            </Box>
-            <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.36
-            </Typography>
-          </Box>
-          <Box sx={{ flexGrow: 1 }} />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Chip 
-              icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#28A745' }} />}
-              label="Network Active" 
-              size="small"
-              sx={{ backgroundColor: '#A0522D', color: '#FFFFFF', fontSize: '12px' }}
-            />
-
-
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      {/* Transaction Slider Bar - Moved to beneath header */}
-      <Box sx={{ mt: '60px', flexShrink: 0 }}>
+      {/* Transaction Slider Bar - Now at the top */}
+      <Box sx={{ flexShrink: 0 }}>
         <YZSliderBar />
       </Box>
 
@@ -1555,7 +1510,7 @@ export default function App() {
                     <Paper sx={{ p: 2, mb: 2, bgcolor: '#e8f5e8', border: '1px solid #4caf50' }}>
                       <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
                         <Typography variant="body2" sx={{ fontWeight: 600, color: '#2e7d32' }}>
-                          🟢 YZ-ETH Multisynq Session Active
+                          🟢 YZ-ETH Session Active
                         </Typography>
                         <Chip
                           label={`📅 ${(blockchainState.heartbeatCount / 86400).toFixed(4)} days`}
@@ -1569,10 +1524,22 @@ export default function App() {
                         />
                       </Box>
                       
-                      {/* Current Block Info */}
-                      <Typography variant="caption" sx={{ color: '#2e7d32', fontFamily: 'monospace' }}>
-                        Block #{blockchainState.currentBlockNumber} | Hash: {blockchainState.blocks.length > 0 ? formatHash(blockchainState.blocks[blockchainState.blocks.length - 1]?.hash) : 'N/A'}
-                      </Typography>
+                      {/* Current Block Info and Version */}
+                      <Box display="flex" alignItems="center" justifyContent="space-between">
+                        <Typography variant="caption" sx={{ color: '#2e7d32', fontFamily: 'monospace' }}>
+                          Block #{blockchainState.currentBlockNumber} | Hash: {blockchainState.blocks.length > 0 ? formatHash(blockchainState.blocks[blockchainState.blocks.length - 1]?.hash) : 'N/A'}
+                        </Typography>
+                        <Chip
+                          label={`v${packageJson.version}`}
+                          size="small"
+                          sx={{ 
+                            backgroundColor: '#8B4513', 
+                            color: '#FFFFFF', 
+                            fontWeight: 'bold',
+                            fontSize: '11px'
+                          }}
+                        />
+                      </Box>
                     </Paper>
 
                     {/* Live Statistics Grid */}
