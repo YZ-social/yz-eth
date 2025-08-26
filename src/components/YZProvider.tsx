@@ -198,7 +198,7 @@ export const YZProvider: React.FC<YZProviderProps> = ({ children }) => {
       await new Promise(resolve => setTimeout(resolve, 100));
 
       console.log("MultisynqProvider: Attempting to join session with Model and View...");
-
+      window.Multisynq.App.makeWidgetDock();
       // Use both Model and View (proper Multisynq architecture)
       const session = await window.Multisynq.Session.join({
         apiKey: "2tY4BJ0rxQ1PFm3gv0IpKYdUsQ09jnYyVb799JTULh",
