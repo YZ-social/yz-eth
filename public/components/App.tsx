@@ -1486,7 +1486,7 @@ export default function App() {
                     <Box display="flex" alignItems="center" gap={2}>
                       <CircularProgress size={20} sx={{ color: '#8B4513' }} />
                       <Typography variant="body2" sx={{ color: '#8B4513' }}>
-                        Connecting to Multisynq session...
+                        Connecting to Consensus Engine session...
                       </Typography>
                     </Box>
                   </Paper>
@@ -1495,7 +1495,7 @@ export default function App() {
                 {error && (
                   <Paper sx={{ p: 2, mb: 2, bgcolor: '#fee', border: '1px solid #fcc', color: '#d32f2f' }}>
                     <Typography variant="body2" fontWeight="bold">
-                      ❌ Multisynq Error: {error}
+                      ❌ Consensus Engine Error: {error}
                     </Typography>
                   </Paper>
                 )}
@@ -1503,7 +1503,7 @@ export default function App() {
                 {!isConnected && !isLoading && (
                   <Paper sx={{ p: 2, mb: 2, bgcolor: '#fff8e1', border: '1px solid #ffcc02', color: '#f57c00' }}>
                     <Typography variant="body2">
-                      ⚠️ Multisynq disconnected - attempting to reconnect...
+                      ⚠️ Consensus Engine disconnected - attempting to reconnect...
                     </Typography>
                   </Paper>
                 )}
@@ -1768,7 +1768,7 @@ export default function App() {
                             console.log("Return value included in output:", result.output?.includes("Return value:"));
                             console.log("======================================");
                             
-                            // Also publish to Multisynq for UI updates with REAL gas data
+                            // Also publish to Consensus Engine for UI updates with REAL gas data
                             const compiledContracts = await executor.compileSolidity(editorCode);
                             if (compiledContracts.length > 0) {
                               const contract = compiledContracts[0];
@@ -1980,7 +1980,7 @@ export default function App() {
                       console.log("Return value included in output:", result.output?.includes("Return value:"));
                       console.log("================================");
                       
-                      // Also publish to Multisynq for UI updates with REAL gas data
+                      // Also publish to Consensus Engine for UI updates with REAL gas data
                       const compiledContracts = await executor.compileSolidity(editorCode);
                       if (compiledContracts.length > 0) {
                         const contract = compiledContracts[0];

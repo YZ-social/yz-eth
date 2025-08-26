@@ -269,10 +269,10 @@ const YZSliderBar: React.FC = () => {
   const initialScrollDone = useRef(false);
   const lastTileCount = useRef(0);
   
-  // Get blocks from Multisynq state
+  // Get blocks from Consensus Engine state
   const blocks = blockchainState?.blocks || [];
   
-  // Get deployed contracts from Multisynq state
+  // Get deployed contracts from Consensus Engine state
   const deployedContracts = blockchainState?.contracts || [];
   
   // Compute all transactions (executed + pending) for slider logic
@@ -834,7 +834,7 @@ const YZSliderBar: React.FC = () => {
         throw new Error(`Expected ${functionInfo.inputs.length} arguments, got ${args.length}`);
       }
 
-      // Publish execution request through Multisynq
+      // Publish execution request through Consensus Engine
       const executionData = {
         contractName: selectedContract.name,
         functionName: functionInfo.name,

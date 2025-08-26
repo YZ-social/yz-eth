@@ -59,7 +59,7 @@ export default function TransferModal({ open, onClose, blockManager }: TransferM
         return
       }
 
-      // Publish transfer request through Multisynq
+      // Publish transfer request through Consensus Engine
       const transferData = {
         from: fromAddress,
         to: toAddress,
@@ -67,7 +67,7 @@ export default function TransferModal({ open, onClose, blockManager }: TransferM
         type: 'eth_transfer'
       }
       
-      console.log("TransferModal: Publishing ETH transfer through Multisynq:", transferData)
+      console.log("TransferModal: Publishing ETH transfer through Consensus Engine:", transferData)
       publish('blockchain', 'executeTransaction', transferData)
       
       onClose()

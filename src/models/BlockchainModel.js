@@ -1,7 +1,7 @@
 // BlockchainModel.js - Multisynq Model for Blockchain Simulation
 // This is our proven model from multisynq-test.html, now as a separate module
 
-// Wait for Multisynq to be available
+// Wait for Consensus Engine to be available
 if (typeof window !== 'undefined' && !window.Multisynq) {
     console.warn("BlockchainModel: Multisynq not yet available, model will initialize when loaded");
 }

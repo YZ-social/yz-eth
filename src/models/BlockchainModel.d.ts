@@ -1,7 +1,7 @@
 // TypeScript declarations for BlockchainModel.js
 
 declare class BlockchainModel {
-  // Multisynq Model methods
+  // Consensus Engine Model methods
   init(): void;
   publish(domain: string, event: string, data?: any): void;
   subscribe(domain: string, event: string, handler: string | ((data: any) => void)): void;

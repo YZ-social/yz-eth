@@ -20,7 +20,7 @@ const YZStatus: React.FC = () => {
         <Box display="flex" alignItems="center" gap={2}>
           <CircularProgress size={20} />
           <Typography variant="body2">
-            Connecting to Multisynq session...
+            Connecting to Consensus Engine session...
           </Typography>
         </Box>
       </Paper>
@@ -31,7 +31,7 @@ const YZStatus: React.FC = () => {
     return (
       <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: 'error.light', color: 'error.contrastText' }}>
         <Typography variant="body2" fontWeight="bold">
-          ❌ Multisynq Error: {error}
+          ❌ Consensus Engine Error: {error}
         </Typography>
       </Paper>
     );
@@ -41,7 +41,7 @@ const YZStatus: React.FC = () => {
     return (
       <Paper elevation={2} sx={{ p: 2, mb: 2, bgcolor: 'warning.light' }}>
         <Typography variant="body2">
-          ⚠️ Multisynq disconnected - attempting to reconnect...
+          ⚠️ Consensus Engine disconnected - attempting to reconnect...
         </Typography>
       </Paper>
     );
@@ -131,7 +131,7 @@ const YZStatus: React.FC = () => {
           size="small"
           disabled={blockchainState.pendingTransactions.length === 0}
           onClick={() => {
-            console.log("MultisynqStatus: Mining block manually...");
+            console.log("Consensus Engine Status: Mining block manually...");
             publish('blockchain', 'createBlock', {});
           }}
           sx={{ 
