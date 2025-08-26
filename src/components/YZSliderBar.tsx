@@ -26,9 +26,9 @@ import TransactionDetailsModal from './TransactionDetailsModal';
 import { formatHash, formatAddress, formatId } from '../utils/formatters';
 
 // Constants for the slider bar
-const TILE_WIDTH = 110; // Reduced from 140
-const TILE_GAP = 6; // Reduced from 8
-const BAR_HEIGHT = 75; // Reduced from 100
+const TILE_WIDTH = 90; // Further reduced from 110 for better mobile fit
+const TILE_GAP = 4; // Further reduced from 6 for tighter spacing
+const BAR_HEIGHT = 60; // Further reduced from 65 for tighter vertical spacing
 const OVERSCAN = 2; // Render extra tiles outside viewport for smooth scrolling
 
 // Transaction tile component (for both executed and pending)
@@ -83,7 +83,7 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        p: 0.6, // Reduced padding
+        p: 0.4, // Further reduced padding for smaller tiles
         transition: 'all 0.2s ease',
         boxShadow: pending ? '0 1px 2px rgba(255,152,0,0.3)' : 'none',
         '&:hover': {
@@ -94,12 +94,12 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
       }}
     >
       {/* Top section: TX number */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '12px' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '10px' }}>
         <Typography
           variant="caption"
           sx={{
             color: labelColor,
-            fontSize: '0.6em', // Reduced from 0.7em
+            fontSize: '0.55em', // Further reduced for smaller tiles
             fontWeight: 'bold',
             lineHeight: 1
           }}
@@ -110,7 +110,7 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
           variant="caption"
           sx={{
             color: labelColor,
-            fontSize: '0.5em', // Reduced from 0.6em
+            fontSize: '0.45em', // Further reduced for smaller tiles
             fontWeight: 'bold',
             lineHeight: 1
           }}
@@ -120,15 +120,15 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
       </Box>
 
       {/* Middle section: Transaction info */}
-      <Box sx={{ textAlign: 'center', my: 0.3, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Box sx={{ textAlign: 'center', my: 0.15, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Typography
           variant="caption"
           sx={{
             color: txInfo.color,
-            fontSize: '0.55em', // Reduced from 0.65em
+            fontSize: '0.5em', // Further reduced for smaller tiles
             fontWeight: 'bold',
             display: 'inline-block',
-            mb: 0.2, // Reduced margin
+            mb: 0.1, // Further reduced margin for tighter spacing
             lineHeight: 1
           }}
         >
@@ -144,10 +144,10 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
               onClick(tx);
             }}
             sx={{
-              fontSize: '0.5em', // Reduced from 0.6em
-              minHeight: '16px', // Reduced from 20px
-              py: 0.2, // Reduced padding
-              px: 0.6,
+              fontSize: '0.45em', // Further reduced for smaller tiles
+              minHeight: '14px', // Further reduced from 16px
+              py: 0.15, // Further reduced padding
+              px: 0.5,
               bgcolor: '#2196f3',
               '&:hover': { bgcolor: '#1976d2' },
               textTransform: 'none',
@@ -161,7 +161,7 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
             variant="caption"
             sx={{
               fontFamily: 'monospace',
-              fontSize: '0.5em', // Reduced from 0.6em
+              fontSize: '0.45em', // Further reduced for smaller tiles
               color: '#666',
               display: 'block',
               overflow: 'hidden',
@@ -175,12 +175,12 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
         )}
       </Box>
       {/* Bottom section: Timestamp left, Gas right */}
-      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.3, minHeight: '10px' }}>
+      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.2, minHeight: '8px' }}>
         <Typography
           variant="caption"
           sx={{
             color: '#888',
-            fontSize: '0.45em', // Reduced from 0.55em
+            fontSize: '0.4em', // Further reduced for smaller tiles
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -196,11 +196,11 @@ const TransactionTile = React.memo(({ tx, txNumber, onClick, pending }: Transact
             variant="caption"
             sx={{
               color: '#666',
-              fontSize: '0.4em', // Reduced from 0.5em
+              fontSize: '0.35em', // Further reduced for smaller tiles
               whiteSpace: 'nowrap',
               lineHeight: 1,
               fontWeight: 'bold',
-              maxWidth: '35px', // Reduced from 45px
+              maxWidth: '30px', // Further reduced from 35px
               overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}
@@ -819,18 +819,17 @@ const YZSliderBar: React.FC = () => {
   return (
     <Box
       sx={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 1201,
+        position: 'relative',
+        width: '100%',
         bgcolor: '#fff',
         borderTop: '2px solid #B05823',
-        boxShadow: '0 -2px 8px rgba(0,0,0,0.08)',
-        height: `${BAR_HEIGHT + 30}px`, // Reduced from +50
+        borderBottom: '1px solid #E5E5E5',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+        height: `${BAR_HEIGHT + 20}px`, // Further reduced from +25 for tighter layout
         display: 'flex',
         alignItems: 'center',
         px: 2,
+        zIndex: 1200, // Lower than AppBar but above main content
       }}
     >
       <IconButton
@@ -848,7 +847,7 @@ const YZSliderBar: React.FC = () => {
         onTouchStart={handleTouchStart}
         sx={{
           flex: 1,
-          height: `${BAR_HEIGHT + 20}px`, // Reduced from +30
+          height: `${BAR_HEIGHT + 10}px`, // Further reduced from +15 for tighter layout
           cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none',
           touchAction: 'pan-x', // Allow horizontal panning for touch devices

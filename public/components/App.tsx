@@ -1409,7 +1409,7 @@ export default function App() {
 
 
   return (
-    <Box sx={{ display: 'flex', height: 'calc(100vh - 150px)', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       {/* Header */}
       <AppBar 
         position="fixed" 
@@ -1436,7 +1436,7 @@ export default function App() {
               YZ
             </Box>
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, color: '#FFFFFF' }}>
-              YZ ETH Studio v0.3.34
+              YZ ETH Studio v0.3.36
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
@@ -1453,8 +1453,13 @@ export default function App() {
         </Toolbar>
       </AppBar>
 
+      {/* Transaction Slider Bar - Moved to beneath header */}
+      <Box sx={{ mt: '60px', flexShrink: 0 }}>
+        <YZSliderBar />
+      </Box>
+
       {/* Main Container */}
-      <Box sx={{ display: 'flex', width: '100%', height: '100%', mt: '60px' }}>
+      <Box sx={{ display: 'flex', width: '100%', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar */}
         <Box
           sx={{
@@ -2184,8 +2189,7 @@ export default function App() {
         )}
       </Box>
 
-      {/* Fixed YZ Block Slider at bottom of page */}
-      <YZSliderBar />
+
 
 
       
