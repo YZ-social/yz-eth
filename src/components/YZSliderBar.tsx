@@ -242,6 +242,13 @@ const YZSliderBar: React.FC = () => {
   const scrollStart = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   
+  // Auto-scroll state
+  const [autoScrollDirection, setAutoScrollDirection] = useState<'left' | 'right' | null>(null);
+  const autoScrollInterval = useRef<NodeJS.Timeout | null>(null);
+  const autoScrollStartTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isHolding = useRef<boolean>(false);
+  const clickStartTime = useRef<number>(0);
+  
   // Modal state
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
@@ -376,11 +383,19 @@ const YZSliderBar: React.FC = () => {
     };
   }, [isInitialized]);
 
+
+
   // Cleanup timer
   useEffect(() => {
     return () => {
       if (userInteractionTimer.current) {
         clearTimeout(userInteractionTimer.current);
+      }
+      if (autoScrollInterval.current) {
+        clearInterval(autoScrollInterval.current);
+      }
+      if (autoScrollStartTimeout.current) {
+        clearTimeout(autoScrollStartTimeout.current);
       }
     };
   }, []);
@@ -438,12 +453,13 @@ const YZSliderBar: React.FC = () => {
     }
   }, [allTxs.length, containerWidth, getScrollBounds]);
 
-  // When new tiles are added and user is at right, autoscroll to new tile
+  // When new tiles are added, always autoscroll to show the latest transaction
   useEffect(() => {
     if (allTxs.length > lastTileCount.current && containerWidth > 0) {
       const { maxScroll } = getScrollBounds();
-      // If user was at (or very near) the right before new tile, autoscroll
-      if (Math.abs(scrollLeft - maxScroll) < (TILE_WIDTH + TILE_GAP + 2)) {
+      // Always scroll to the far right to show new transactions
+      // Only skip auto-scroll if user is actively dragging or auto-scrolling
+      if (!isDragging && !autoScrollDirection) {
         setScrollLeft(maxScroll);
       }
       lastTileCount.current = allTxs.length;
@@ -451,7 +467,7 @@ const YZSliderBar: React.FC = () => {
       // If tiles were removed (e.g., reset), update count
       lastTileCount.current = allTxs.length;
     }
-  }, [allTxs.length, containerWidth, scrollLeft, getScrollBounds]);
+  }, [allTxs.length, containerWidth, getScrollBounds, isDragging, autoScrollDirection]);
 
   // Handle scroll to position
   const scrollToPosition = useCallback((newScrollLeft: number) => {
@@ -466,9 +482,66 @@ const YZSliderBar: React.FC = () => {
     setScrollLeft(clampedScroll);
   }, [getScrollBounds]);
 
-  // Handle arrow clicks
-  const handleArrowClick = useCallback((direction: 'left' | 'right') => {
+  // Auto-scroll functions with press-and-hold detection
+  const startPotentialAutoScroll = useCallback((direction: 'left' | 'right') => {
+    // Clear any existing timeouts/intervals
+    if (autoScrollStartTimeout.current) {
+      clearTimeout(autoScrollStartTimeout.current);
+    }
+    if (autoScrollInterval.current) {
+      clearInterval(autoScrollInterval.current);
+    }
     
+    markUserInteraction();
+    
+    // Start timeout for press-and-hold detection (250ms delay)
+    autoScrollStartTimeout.current = setTimeout(() => {
+      setAutoScrollDirection(direction);
+      
+      // Start continuous scrolling after the hold delay
+      autoScrollInterval.current = setInterval(() => {
+        setScrollLeft(currentScrollLeft => {
+          const step = TILE_WIDTH + TILE_GAP;
+          const newScrollLeft = direction === 'left' 
+            ? currentScrollLeft - step 
+            : currentScrollLeft + step;
+          
+          const { maxScroll } = getScrollBounds();
+          const clampedScroll = Math.max(0, Math.min(newScrollLeft, maxScroll));
+          
+          // Stop auto-scrolling if we've reached the bounds
+          if (clampedScroll === 0 || clampedScroll === maxScroll) {
+            if (autoScrollInterval.current) {
+              clearInterval(autoScrollInterval.current);
+              autoScrollInterval.current = null;
+            }
+            setAutoScrollDirection(null);
+          }
+          
+          return clampedScroll;
+        });
+      }, 150); // Scroll every 150ms for smooth but not too fast scrolling
+    }, 250); // 250ms hold delay before auto-scroll starts
+  }, [markUserInteraction, getScrollBounds]);
+
+  const stopAutoScroll = useCallback(() => {
+    // Clear the start timeout (cancels auto-scroll if released quickly)
+    if (autoScrollStartTimeout.current) {
+      clearTimeout(autoScrollStartTimeout.current);
+      autoScrollStartTimeout.current = null;
+    }
+    
+    // Clear the interval (stops ongoing auto-scroll)
+    if (autoScrollInterval.current) {
+      clearInterval(autoScrollInterval.current);
+      autoScrollInterval.current = null;
+    }
+    
+    setAutoScrollDirection(null);
+  }, []);
+
+  // Handle arrow clicks (single click)
+  const handleArrowClick = useCallback((direction: 'left' | 'right') => {
     markUserInteraction();
     const step = TILE_WIDTH + TILE_GAP;
     const newScrollLeft = direction === 'left' 
@@ -477,6 +550,20 @@ const YZSliderBar: React.FC = () => {
     
     scrollToPosition(newScrollLeft);
   }, [scrollLeft, markUserInteraction, scrollToPosition]);
+
+  // Global mouse/touch event listeners for auto-scroll
+  useEffect(() => {
+    const handleGlobalMouseUp = () => stopAutoScroll();
+    const handleGlobalTouchEnd = () => stopAutoScroll();
+    
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('touchend', handleGlobalTouchEnd);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchend', handleGlobalTouchEnd);
+    };
+  }, [stopAutoScroll]);
 
   // Mouse drag handling
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -825,18 +912,33 @@ const YZSliderBar: React.FC = () => {
         borderTop: '2px solid #B05823',
         borderBottom: '1px solid #E5E5E5',
         boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-        height: `${BAR_HEIGHT + 20}px`, // Further reduced from +25 for tighter layout
+        height: `${BAR_HEIGHT + 15}px`, // Further reduced from +20 for smaller arrow buttons
         display: 'flex',
         alignItems: 'center',
-        px: 2,
+        px: 1,
         zIndex: 1200, // Lower than AppBar but above main content
       }}
     >
       <IconButton
         onClick={() => handleArrowClick('left')}
+        onMouseDown={() => startPotentialAutoScroll('left')}
+        onMouseUp={stopAutoScroll}
+        onMouseLeave={stopAutoScroll}
+        onTouchStart={() => startPotentialAutoScroll('left')}
+        onTouchEnd={stopAutoScroll}
         disabled={!canScrollLeft}
-        sx={{ mr: 1, opacity: canScrollLeft ? 1 : 0.3 }}
-        size="large"
+        sx={{ 
+          mr: 0.25, 
+          opacity: canScrollLeft ? 1 : 0.3,
+          height: '28px',
+          width: '24px',
+          minHeight: '28px',
+          minWidth: '24px',
+          '& .MuiSvgIcon-root': {
+            fontSize: '14px'
+          }
+        }}
+        size="small"
       >
         <ArrowBackIos />
       </IconButton>
@@ -847,7 +949,7 @@ const YZSliderBar: React.FC = () => {
         onTouchStart={handleTouchStart}
         sx={{
           flex: 1,
-          height: `${BAR_HEIGHT + 10}px`, // Further reduced from +15 for tighter layout
+          height: `${BAR_HEIGHT + 5}px`, // Further reduced from +10 for smaller arrow buttons
           cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none',
           touchAction: 'pan-x', // Allow horizontal panning for touch devices
@@ -922,9 +1024,24 @@ const YZSliderBar: React.FC = () => {
       
       <IconButton
         onClick={() => handleArrowClick('right')}
+        onMouseDown={() => startPotentialAutoScroll('right')}
+        onMouseUp={stopAutoScroll}
+        onMouseLeave={stopAutoScroll}
+        onTouchStart={() => startPotentialAutoScroll('right')}
+        onTouchEnd={stopAutoScroll}
         disabled={!canScrollRight}
-        sx={{ ml: 1, opacity: canScrollRight ? 1 : 0.3 }}
-        size="large"
+        sx={{ 
+          ml: 0.75, 
+          opacity: canScrollRight ? 1 : 0.3,
+          height: '28px',
+          width: '24px',
+          minHeight: '28px',
+          minWidth: '24px',
+          '& .MuiSvgIcon-root': {
+            fontSize: '14px'
+          }
+        }}
+        size="small"
       >
         <ArrowForwardIos />
       </IconButton>
