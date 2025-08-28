@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 
-// Multisynq integration types
+// Consensus Engine integration types
 interface MultisynqState {
   blocks: any[];
   accounts: { address: string; balance: bigint }[];
